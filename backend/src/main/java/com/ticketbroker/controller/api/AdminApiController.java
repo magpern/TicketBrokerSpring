@@ -2,9 +2,11 @@ package com.ticketbroker.controller.api;
 
 import com.ticketbroker.dto.BookingResponse;
 import com.ticketbroker.model.Booking;
+import com.ticketbroker.model.Show;
 import com.ticketbroker.model.Ticket;
 import com.ticketbroker.repository.AuditLogRepository;
 import com.ticketbroker.repository.BookingRepository;
+import com.ticketbroker.repository.ShowRepository;
 import com.ticketbroker.repository.TicketRepository;
 import com.ticketbroker.service.BookingService;
 import com.ticketbroker.service.EmailService;
@@ -32,6 +34,7 @@ import java.util.stream.Collectors;
 public class AdminApiController {
     private final BookingRepository bookingRepository;
     private final TicketRepository ticketRepository;
+    private final ShowRepository showRepository;
     private final AuditLogRepository auditLogRepository;
     private final BookingService bookingService;
     private final TicketService ticketService;
@@ -41,12 +44,13 @@ public class AdminApiController {
     private final SettingsService settingsService;
     
     public AdminApiController(BookingRepository bookingRepository, TicketRepository ticketRepository,
-                            AuditLogRepository auditLogRepository, BookingService bookingService,
-                            TicketService ticketService, EmailService emailService,
-                            PdfService pdfService, ExcelService excelService,
-                            SettingsService settingsService) {
+                            ShowRepository showRepository, AuditLogRepository auditLogRepository, 
+                            BookingService bookingService, TicketService ticketService, 
+                            EmailService emailService, PdfService pdfService, 
+                            ExcelService excelService, SettingsService settingsService) {
         this.bookingRepository = bookingRepository;
         this.ticketRepository = ticketRepository;
+        this.showRepository = showRepository;
         this.auditLogRepository = auditLogRepository;
         this.bookingService = bookingService;
         this.ticketService = ticketService;
@@ -226,6 +230,108 @@ public class AdminApiController {
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
         
         ticketService.deleteTicket(ticket, adminUser, reason);
+        return ResponseEntity.noContent().build();
+    }
+    
+    @GetMapping("/shows")
+    public ResponseEntity<List<Map<String, Object>>> getAllShows() {
+        List<Show> shows = showRepository.findAllByOrderByStartTimeAsc();
+        List<Map<String, Object>> responses = shows.stream().map(show -> {
+            Map<String, Object> map = new HashMap<>();
+            map.put("id", show.getId());
+            map.put("date", show.getDate());
+            map.put("startTime", show.getStartTime());
+            map.put("endTime", show.getEndTime());
+            map.put("totalTickets", show.getTotalTickets());
+            map.put("availableTickets", show.getAvailableTickets());
+            map.put("bookingsCount", show.getBookings() != null ? show.getBookings().size() : 0);
+            return map;
+        }).collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
+    
+    @PostMapping("/shows")
+    public ResponseEntity<Map<String, Object>> createShow(@RequestBody Map<String, Object> request) {
+        Show show = new Show();
+        show.setDate((String) request.get("date"));
+        show.setStartTime((String) request.get("startTime"));
+        show.setEndTime((String) request.get("endTime"));
+        Integer totalTickets = request.get("totalTickets") != null ? 
+            ((Number) request.get("totalTickets")).intValue() : 100;
+        show.setTotalTickets(totalTickets);
+        show.setAvailableTickets(totalTickets);
+        
+        show = showRepository.save(show);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", show.getId());
+        response.put("date", show.getDate());
+        response.put("startTime", show.getStartTime());
+        response.put("endTime", show.getEndTime());
+        response.put("totalTickets", show.getTotalTickets());
+        response.put("availableTickets", show.getAvailableTickets());
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+    
+    @PutMapping("/shows/{id}")
+    public ResponseEntity<Map<String, Object>> updateShow(@PathVariable Long id,
+                                                          @RequestBody Map<String, Object> request) {
+        Show show = showRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Show not found"));
+        
+        Integer newTotalTickets = request.get("totalTickets") != null ? 
+            ((Number) request.get("totalTickets")).intValue() : show.getTotalTickets();
+        Integer newAvailableTickets = request.get("availableTickets") != null ? 
+            ((Number) request.get("availableTickets")).intValue() : show.getAvailableTickets();
+        
+        // Validation
+        if (newTotalTickets < 0) {
+            throw new IllegalArgumentException("Totalt antal biljetter kan inte vara negativt.");
+        }
+        if (newAvailableTickets < 0) {
+            throw new IllegalArgumentException("Tillgängliga biljetter kan inte vara negativa.");
+        }
+        if (newAvailableTickets > newTotalTickets) {
+            throw new IllegalArgumentException("Tillgängliga biljetter kan inte vara fler än totalt antal biljetter.");
+        }
+        
+        // Calculate how many tickets are currently booked
+        List<Booking> confirmedBookings = bookingRepository.findConfirmedBookingsByShowId(id);
+        int totalBooked = confirmedBookings.stream()
+                .mapToInt(b -> b.getAdultTickets() + b.getStudentTickets())
+                .sum();
+        
+        // Check if we're trying to set available tickets too low
+        if (newAvailableTickets < totalBooked) {
+            throw new IllegalArgumentException(
+                String.format("Kan inte sätta tillgängliga biljetter till %d. Det finns redan %d bekräftade biljetter.", 
+                    newAvailableTickets, totalBooked));
+        }
+        
+        show.setTotalTickets(newTotalTickets);
+        show.setAvailableTickets(newAvailableTickets);
+        show = showRepository.save(show);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", show.getId());
+        response.put("date", show.getDate());
+        response.put("startTime", show.getStartTime());
+        response.put("endTime", show.getEndTime());
+        response.put("totalTickets", show.getTotalTickets());
+        response.put("availableTickets", show.getAvailableTickets());
+        return ResponseEntity.ok(response);
+    }
+    
+    @DeleteMapping("/shows/{id}")
+    public ResponseEntity<Void> deleteShow(@PathVariable Long id) {
+        Show show = showRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Show not found"));
+        
+        if (show.getBookings() != null && !show.getBookings().isEmpty()) {
+            throw new IllegalArgumentException("Kan inte radera föreställning med befintliga bokningar.");
+        }
+        
+        showRepository.delete(show);
         return ResponseEntity.noContent().build();
     }
     
