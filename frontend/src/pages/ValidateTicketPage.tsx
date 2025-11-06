@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import api from '../services/api'
 import { Show } from '../types/booking'
+import Layout from '../components/Layout'
 import './ValidateTicketPage.css'
 
 // Declare jsQR for TypeScript
@@ -279,10 +280,11 @@ function ValidateTicketPage() {
   }
 
   return (
-    <div className="validate-ticket-container">
-      <div className="validate-header">
-        <h1>🎫 Validera Biljett</h1>
-      </div>
+    <Layout>
+      <div className="validate-ticket-container">
+        <div className="validate-header">
+          <h1>🎫 Validera Biljett</h1>
+        </div>
 
       <div className="camera-container">
         {mode === 'camera' && (
@@ -379,7 +381,8 @@ function ValidateTicketPage() {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </Layout>
   )
 }
 

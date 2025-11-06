@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import api from '../services/api'
 import { Show, BookingRequest } from '../types/booking'
+import Layout from '../components/Layout'
 import './BookingPage.css'
 
 interface Settings {
@@ -83,9 +84,8 @@ function BookingPage() {
   }
 
   return (
-    <div className="container">
-      <main className="main">
-        <div className="booking-container">
+    <Layout>
+      <div className="booking-container">
           {step === 1 && (
             <div className="booking-step">
               <h2>Steg 1: Välj tid</h2>
@@ -322,8 +322,7 @@ function BookingPage() {
             </div>
           )}
         </div>
-      </main>
-    </div>
+    </Layout>
   )
 }
 

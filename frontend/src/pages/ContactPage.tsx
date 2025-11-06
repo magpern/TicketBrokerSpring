@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
+import Layout from '../components/Layout'
 import './ContactPage.css'
 
 function ContactPage() {
@@ -54,9 +55,8 @@ function ContactPage() {
   }
 
   return (
-    <div className="container">
-      <main className="main">
-        <div className="booking-container">
+    <Layout>
+      <div className="booking-container">
           <div className="booking-step">
             <h2>Kontaktformulär</h2>
             <p>Har du frågor om konserten eller behöver hjälp? Skicka oss ett meddelande så återkommer vi så snart som möjligt.</p>
@@ -179,8 +179,7 @@ function ContactPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </Layout>
   )
 }
 

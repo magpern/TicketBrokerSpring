@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import api from '../services/api'
 import { BookingResponse } from '../types/booking'
+import Layout from '../components/Layout'
 import './BookingSuccessPage.css'
 
 function BookingSuccessPage() {
@@ -79,13 +80,11 @@ function BookingSuccessPage() {
 
   if (!booking) {
     return (
-      <div className="container">
-        <main className="main">
-          <div className="success-container">
-            <p>Laddar...</p>
-          </div>
-        </main>
-      </div>
+      <Layout>
+        <div className="success-container">
+          <p>Laddar...</p>
+        </div>
+      </Layout>
     )
   }
 
@@ -93,9 +92,8 @@ function BookingSuccessPage() {
   const isPending = booking.buyerConfirmedPayment && !isConfirmed
 
   return (
-    <div className="container">
-      <main className="main">
-        <div className="success-container">
+    <Layout>
+      <div className="success-container">
           <div className="success-message">
             <h2>Tack för din reservation!</h2>
             <div className="booking-reference-display">
@@ -201,8 +199,7 @@ function BookingSuccessPage() {
             <Link to="/" className="btn btn-secondary">Tillbaka till startsidan</Link>
           </div>
         </div>
-      </main>
-    </div>
+    </Layout>
   )
 }
 

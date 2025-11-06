@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import api from '../services/api'
+import Layout from '../components/Layout'
 import './FindBookingPage.css'
 
 function FindBookingPage() {
@@ -43,9 +44,8 @@ function FindBookingPage() {
   }
 
   return (
-    <div className="container">
-      <main className="main">
-        <div className="booking-container">
+    <Layout>
+      <div className="booking-container">
           <div className="booking-step">
             <h2>Hitta min bokning</h2>
             <p>Ange din e-postadress och efternamn för att komma till din bokning.</p>
@@ -103,8 +103,7 @@ function FindBookingPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+    </Layout>
   )
 }
 

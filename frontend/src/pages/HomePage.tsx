@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../services/api'
 import { Show } from '../types/booking'
+import Layout from '../components/Layout'
 import './HomePage.css'
 
 interface Settings {
@@ -44,13 +45,8 @@ function HomePage() {
   }
 
   return (
-    <div className="container">
-      <header className="header">
-        <h1 className="title">{settings.concertName || 'Klasskonsert 24C'}</h1>
-      </header>
-
-      <main className="main">
-        <div className="welcome-section">
+    <Layout>
+      <div className="welcome-section">
           {classPhotoUrl && (
             <div className="class-photo">
               <img 
@@ -123,15 +119,6 @@ function HomePage() {
             </div>
           </div>
         </div>
-      </main>
-
-      <footer className="footer">
-        <p>
-          Kontakt: <a href={`mailto:${settings.contactEmail || 'admin@example.com'}`}>
-            {settings.contactEmail || 'admin@example.com'}
-          </a> | <Link to="/contact">Kontaktformulär</Link>
-        </p>
-      </footer>
 
       {/* Sticky booking button for mobile */}
       <div className="sticky-booking-btn">
@@ -139,7 +126,7 @@ function HomePage() {
           Boka biljetter
         </Link>
       </div>
-    </div>
+    </Layout>
   )
 }
 
