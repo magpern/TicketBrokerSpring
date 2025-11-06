@@ -8,6 +8,7 @@ import ContactPage from './pages/ContactPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
 import AdminSettingsPage from './pages/AdminSettingsPage'
+import AdminCheckTicketPage from './pages/AdminCheckTicketPage'
 import ValidateTicketPage from './pages/ValidateTicketPage'
 import './App.css'
 
@@ -45,6 +46,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminSettingsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/check-ticket"
+            element={
+              <ProtectedRoute>
+                <AdminCheckTicketPage />
               </ProtectedRoute>
             }
           />

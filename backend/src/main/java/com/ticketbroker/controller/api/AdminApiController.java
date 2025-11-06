@@ -16,6 +16,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -89,6 +90,63 @@ public class AdminApiController {
         return ResponseEntity.noContent().build();
     }
     
+    @PostMapping("/bookings/{id}/resend-confirmation")
+    public ResponseEntity<Map<String, String>> resendConfirmation(@PathVariable Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+        
+        if ("confirmed".equals(booking.getStatus())) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Kan endast skicka om bekräftelse för obekräftade bokningar.");
+            return ResponseEntity.badRequest().body(error);
+        }
+        
+        try {
+            // Generate payment URL
+            String paymentUrl = "/booking/success/" + booking.getBookingReference() + "/" + booking.getEmail();
+            emailService.sendBookingConfirmation(booking, paymentUrl);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Bekräftelse skickad om till " + booking.getFullName() + "!");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Ett fel uppstod vid omssändning av bekräftelse.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+    
+    @PostMapping("/bookings/{id}/resend-tickets")
+    public ResponseEntity<Map<String, String>> resendTickets(@PathVariable Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+        
+        if (!"confirmed".equals(booking.getStatus())) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Kan endast skicka om biljetter för bekräftade bokningar.");
+            return ResponseEntity.badRequest().body(error);
+        }
+        
+        if (booking.getTickets() == null || booking.getTickets().isEmpty()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Inga biljetter att skicka om.");
+            return ResponseEntity.badRequest().body(error);
+        }
+        
+        try {
+            byte[] pdfData = pdfService.generateTicketsPdf(booking);
+            emailService.sendPaymentConfirmed(booking, pdfData);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Biljetter skickade om till " + booking.getFullName() + "!");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Ett fel uppstod vid omssändning av biljetter.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
+    }
+    
     @GetMapping("/tickets")
     public ResponseEntity<List<Map<String, Object>>> getAllTickets() {
         List<Ticket> tickets = ticketRepository.findAll();
@@ -121,6 +179,45 @@ public class AdminApiController {
         return ResponseEntity.ok(response);
     }
     
+    @GetMapping("/tickets/by-reference/{reference}")
+    public ResponseEntity<Map<String, Object>> getTicketByReference(@PathVariable String reference) {
+        Ticket ticket = ticketService.findByReference(reference.toUpperCase())
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", ticket.getId());
+        response.put("ticketReference", ticket.getTicketReference());
+        response.put("ticketType", ticket.getTicketType());
+        response.put("isUsed", ticket.getIsUsed());
+        response.put("usedAt", ticket.getUsedAt());
+        response.put("checkedBy", ticket.getCheckedBy());
+        response.put("createdAt", ticket.getCreatedAt());
+        response.put("bookingReference", ticket.getBooking().getBookingReference());
+        response.put("buyerName", ticket.getBuyer().getFirstName() + " " + ticket.getBuyer().getLastName());
+        response.put("buyerPhone", ticket.getBuyer().getPhone());
+        response.put("buyerEmail", ticket.getBuyer().getEmail());
+        response.put("showTime", ticket.getShow().getStartTime() + "-" + ticket.getShow().getEndTime());
+        
+        return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping("/tickets/by-reference/{reference}/toggle-state")
+    public ResponseEntity<Map<String, Object>> toggleTicketStateByReference(@PathVariable String reference,
+                                                                             @RequestParam(defaultValue = "admin") String checkerUser) {
+        Ticket ticket = ticketService.findByReference(reference.toUpperCase())
+                .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
+        
+        ticketService.toggleTicketState(ticket, checkerUser);
+        
+        Map<String, Object> response = new HashMap<>();
+        response.put("id", ticket.getId());
+        response.put("ticketReference", ticket.getTicketReference());
+        response.put("isUsed", ticket.getIsUsed());
+        response.put("usedAt", ticket.getUsedAt());
+        response.put("checkedBy", ticket.getCheckedBy());
+        return ResponseEntity.ok(response);
+    }
+    
     @DeleteMapping("/tickets/{id}")
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id,
                                              @RequestParam(defaultValue = "admin") String adminUser,
@@ -141,6 +238,25 @@ public class AdminApiController {
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
             headers.setContentDispositionFormData("attachment", "bookings.xlsx");
+            
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(excelData);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+    
+    @GetMapping("/export/revenue")
+    public ResponseEntity<byte[]> exportRevenueReport() {
+        try {
+            List<Booking> bookings = bookingRepository.findAll();
+            byte[] excelData = excelService.exportRevenueReport(bookings);
+            
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            String filename = "revenue_report_" + java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMdd")) + ".xlsx";
+            headers.setContentDispositionFormData("attachment", filename);
             
             return ResponseEntity.ok()
                     .headers(headers)

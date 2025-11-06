@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import adminApi from '../services/adminApi'
+import Layout from '../components/Layout'
 import './AdminSettingsPage.css'
 
 interface Settings {
@@ -165,20 +166,17 @@ function AdminSettingsPage() {
 
   if (loading) {
     return (
-      <div className="container">
-        <main className="main">
-          <div className="admin-container">
-            <p>Laddar...</p>
-          </div>
-        </main>
-      </div>
+      <Layout>
+        <div className="admin-container">
+          <p>Laddar...</p>
+        </div>
+      </Layout>
     )
   }
 
   return (
-    <div className="container">
-      <main className="main">
-        <div className="admin-container">
+    <Layout>
+      <div className="admin-container">
           {message && (
             <div className={`flash flash-${message.type}`}>{message.text}</div>
           )}
@@ -435,8 +433,7 @@ function AdminSettingsPage() {
             </form>
           </div>
         </div>
-      </main>
-    </div>
+    </Layout>
   )
 }
 

@@ -165,6 +165,18 @@ tr.pending {
   color: #212529;
 }
 
+.btn-info {
+  background-color: #17a2b8;
+  color: white;
+  border: 1px solid #17a2b8;
+}
+
+.btn-info:hover {
+  background-color: #138496;
+  border-color: #117a8b;
+  color: white;
+}
+
 .flash {
   padding: 15px 20px;
   border-radius: 10px;

@@ -71,5 +71,107 @@ public class ExcelService {
             return baos.toByteArray();
         }
     }
+    
+    public byte[] exportRevenueReport(List<Booking> bookings) throws IOException {
+        try (Workbook workbook = new XSSFWorkbook()) {
+            // Summary sheet
+            Sheet summarySheet = workbook.createSheet("Revenue Summary");
+            
+            // Calculate totals
+            List<Booking> confirmedBookings = bookings.stream()
+                    .filter(b -> "confirmed".equals(b.getStatus()))
+                    .toList();
+            List<Booking> reservedBookings = bookings.stream()
+                    .filter(b -> !"confirmed".equals(b.getStatus()))
+                    .toList();
+            
+            int totalRevenue = confirmedBookings.stream()
+                    .mapToInt(Booking::getTotalAmount)
+                    .sum();
+            int potentialRevenue = reservedBookings.stream()
+                    .mapToInt(Booking::getTotalAmount)
+                    .sum();
+            
+            // Summary data
+            int rowNum = 0;
+            Row row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Revenue Report");
+            row.createCell(1).setCellValue("Generated: " + java.time.LocalDateTime.now().format(DATE_FORMATTER));
+            
+            rowNum++; // Empty row
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("REVENUE");
+            
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Confirmed Revenue:");
+            row.createCell(1).setCellValue(totalRevenue + " kr");
+            
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Potential Revenue:");
+            row.createCell(1).setCellValue(potentialRevenue + " kr");
+            
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Total Potential:");
+            row.createCell(1).setCellValue((totalRevenue + potentialRevenue) + " kr");
+            
+            // Revenue by show sheet
+            Sheet showSheet = workbook.createSheet("Revenue by Show");
+            
+            // Group by show
+            java.util.Map<String, java.util.Map<String, Object>> showRevenue = new java.util.HashMap<>();
+            for (Booking booking : bookings) {
+                String showKey = booking.getShow().getStartTime() + "-" + booking.getShow().getEndTime();
+                showRevenue.putIfAbsent(showKey, new java.util.HashMap<>());
+                java.util.Map<String, Object> data = showRevenue.get(showKey);
+                data.putIfAbsent("confirmedRevenue", 0);
+                data.putIfAbsent("potentialRevenue", 0);
+                data.putIfAbsent("confirmedBookings", 0);
+                data.putIfAbsent("reservedBookings", 0);
+                data.putIfAbsent("totalTickets", 0);
+                
+                if ("confirmed".equals(booking.getStatus())) {
+                    data.put("confirmedRevenue", (Integer) data.get("confirmedRevenue") + booking.getTotalAmount());
+                    data.put("confirmedBookings", (Integer) data.get("confirmedBookings") + 1);
+                } else {
+                    data.put("potentialRevenue", (Integer) data.get("potentialRevenue") + booking.getTotalAmount());
+                    data.put("reservedBookings", (Integer) data.get("reservedBookings") + 1);
+                }
+                data.put("totalTickets", (Integer) data.get("totalTickets") + booking.getAdultTickets() + booking.getStudentTickets());
+            }
+            
+            // Show revenue headers
+            rowNum = 0;
+            row = showSheet.createRow(rowNum++);
+            String[] showHeaders = {"Show Time", "Confirmed Revenue", "Potential Revenue", "Total Revenue", "Confirmed Bookings", "Reserved Bookings", "Total Tickets"};
+            for (int i = 0; i < showHeaders.length; i++) {
+                row.createCell(i).setCellValue(showHeaders[i]);
+            }
+            
+            // Show revenue data
+            for (java.util.Map.Entry<String, java.util.Map<String, Object>> entry : showRevenue.entrySet()) {
+                row = showSheet.createRow(rowNum++);
+                java.util.Map<String, Object> data = entry.getValue();
+                int confirmedRev = (Integer) data.get("confirmedRevenue");
+                int potentialRev = (Integer) data.get("potentialRevenue");
+                
+                row.createCell(0).setCellValue(entry.getKey());
+                row.createCell(1).setCellValue(confirmedRev + " kr");
+                row.createCell(2).setCellValue(potentialRev + " kr");
+                row.createCell(3).setCellValue((confirmedRev + potentialRev) + " kr");
+                row.createCell(4).setCellValue((Integer) data.get("confirmedBookings"));
+                row.createCell(5).setCellValue((Integer) data.get("reservedBookings"));
+                row.createCell(6).setCellValue((Integer) data.get("totalTickets"));
+            }
+            
+            // Auto-size columns
+            for (int i = 0; i < showHeaders.length; i++) {
+                showSheet.autoSizeColumn(i);
+            }
+            
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            workbook.write(baos);
+            return baos.toByteArray();
+        }
+    }
 }
 
