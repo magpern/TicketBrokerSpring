@@ -1,0 +1,53 @@
+/* Login page */
+.login-container {
+  max-width: 400px;
+  margin: 0 auto;
+  padding-top: 50px;
+}
+
+.login-form {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 40px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.login-form h2 {
+  color: #dc2626;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.flash {
+  padding: 15px 20px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.flash-error {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.flash-success {
+  background: #d1fae5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.login-info {
+  text-align: center;
+  margin-top: 20px;
+}
+
+.login-info a {
+  color: #dc2626;
+  text-decoration: none;
+}
+
+.login-info a:hover {
+  text-decoration: underline;
+}
+
