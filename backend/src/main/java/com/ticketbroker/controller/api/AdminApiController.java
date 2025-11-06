@@ -152,8 +152,53 @@ public class AdminApiController {
     }
     
     @GetMapping("/tickets")
-    public ResponseEntity<List<Map<String, Object>>> getAllTickets() {
+    public ResponseEntity<List<Map<String, Object>>> getAllTickets(
+            @RequestParam(required = false) Long showId,
+            @RequestParam(required = false) String used,
+            @RequestParam(required = false) String search,
+            @RequestParam(required = false) String bookingRef) {
         List<Ticket> tickets = ticketRepository.findAll();
+        
+        // Apply filters
+        if (showId != null) {
+            tickets = tickets.stream()
+                    .filter(t -> t.getShow().getId().equals(showId))
+                    .collect(Collectors.toList());
+        }
+        
+        if ("used".equals(used)) {
+            tickets = tickets.stream()
+                    .filter(Ticket::getIsUsed)
+                    .collect(Collectors.toList());
+        } else if ("unused".equals(used)) {
+            tickets = tickets.stream()
+                    .filter(t -> !t.getIsUsed())
+                    .collect(Collectors.toList());
+        }
+        
+        if (bookingRef != null && !bookingRef.isEmpty()) {
+            String finalBookingRef = bookingRef.toUpperCase();
+            tickets = tickets.stream()
+                    .filter(t -> t.getBooking().getBookingReference().equalsIgnoreCase(finalBookingRef))
+                    .collect(Collectors.toList());
+        }
+        
+        if (search != null && !search.isEmpty()) {
+            String finalSearch = search.toLowerCase();
+            tickets = tickets.stream()
+                    .filter(t -> 
+                        t.getTicketReference().toLowerCase().contains(finalSearch) ||
+                        t.getBooking().getBookingReference().toLowerCase().contains(finalSearch) ||
+                        (t.getBuyer().getFirstName() + " " + t.getBuyer().getLastName())
+                            .toLowerCase().contains(finalSearch))
+                    .collect(Collectors.toList());
+        }
+        
+        // Sort by created date descending
+        tickets = tickets.stream()
+                .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
+                .collect(Collectors.toList());
+        
         List<Map<String, Object>> responses = tickets.stream().map(ticket -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", ticket.getId());
@@ -162,8 +207,12 @@ public class AdminApiController {
             map.put("isUsed", ticket.getIsUsed());
             map.put("usedAt", ticket.getUsedAt());
             map.put("checkedBy", ticket.getCheckedBy());
+            map.put("createdAt", ticket.getCreatedAt());
             map.put("bookingReference", ticket.getBooking().getBookingReference());
+            map.put("buyerName", ticket.getBuyer().getFirstName() + " " + ticket.getBuyer().getLastName());
+            map.put("buyerPhone", ticket.getBuyer().getPhone());
             map.put("showTime", ticket.getShow().getStartTime() + "-" + ticket.getShow().getEndTime());
+            map.put("showId", ticket.getShow().getId());
             return map;
         }).collect(Collectors.toList());
         return ResponseEntity.ok(responses);
