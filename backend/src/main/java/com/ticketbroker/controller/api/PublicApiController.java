@@ -252,5 +252,15 @@ public class PublicApiController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
     }
+    
+    @GetMapping("/bookings/search")
+    public ResponseEntity<List<BookingResponse>> searchBookings(@RequestParam String email,
+                                                                  @RequestParam String lastName) {
+        List<Booking> bookings = bookingService.getBookingsByEmailAndLastName(email, lastName);
+        List<BookingResponse> responses = bookings.stream()
+                .map(BookingResponse::fromEntity)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(responses);
+    }
 }
 

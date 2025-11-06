@@ -20,6 +20,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     
     List<Booking> findByEmail(String email);
     
+    List<Booking> findByEmailAndLastName(String email, String lastName);
+    
     @Query("SELECT b FROM Booking b WHERE b.status = 'confirmed' AND b.show.id = :showId")
     List<Booking> findConfirmedBookingsByShowId(Long showId);
 }

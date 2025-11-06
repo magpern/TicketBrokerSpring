@@ -78,6 +78,10 @@ public class BookingService {
         return bookingRepository.findByEmail(email);
     }
     
+    public List<Booking> getBookingsByEmailAndLastName(String email, String lastName) {
+        return bookingRepository.findByEmailAndLastName(email.toLowerCase(), lastName);
+    }
+    
     @Transactional
     public void initiatePayment(Booking booking) {
         booking.setSwishPaymentInitiated(true);
