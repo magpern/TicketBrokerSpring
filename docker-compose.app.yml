@@ -1,0 +1,64 @@
+version: '3.8'
+
+# Application services: Backend and Frontend
+# Development: Builds from source (default)
+# Usage: docker-compose -f docker-compose.infrastructure.yml -f docker-compose.app.yml up -d
+#
+# Production/Test: Pull from GitHub Container Registry
+# Usage: docker-compose -f docker-compose.infrastructure.yml -f docker-compose.app.yml -f docker-compose.app.prod.yml up -d
+# Set environment variables:
+#   - DOCKER_REGISTRY=ghcr.io (default)
+#   - GITHUB_REPOSITORY=owner/repo-name (e.g., username/TicketBrokerSpring)
+#   - IMAGE_TAG=latest or v1.0.0 (default: latest)
+
+services:
+  ticketbroker-api:
+    # Development: build from source
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY:-owner/ticketbrokerspring}-backend:${IMAGE_TAG:-latest}
+    container_name: ticketbroker-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+      loki:
+        condition: service_started
+    environment:
+      # Spring Profile - set to 'dev' for development
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      # Database credentials for dev profile
+      POSTGRES_DEV_PASSWORD: ${POSTGRES_DEV_PASSWORD:-raspberry}
+      # Database credentials for prod profile (if needed)
+      POSTGRES_PROD_PASSWORD: ${POSTGRES_PROD_PASSWORD:-prod_password_change_me}
+      # Mail configuration
+      MAIL_USERNAME: ${MAIL_USERNAME:-}
+      MAIL_PASSWORD: ${MAIL_PASSWORD:-}
+      # Admin password
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+    volumes:
+      - ./logs:/app/logs
+    ports:
+      - "8080:8080"
+    networks:
+      - ticketbroker-network
+    restart: unless-stopped
+
+  ticketbroker-frontend:
+    # Development: build from source
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY:-owner/ticketbrokerspring}-frontend:${IMAGE_TAG:-latest}
+    container_name: ticketbroker-frontend
+    depends_on:
+      - ticketbroker-api
+    ports:
+      - "80:80"
+    networks:
+      - ticketbroker-network
+    restart: unless-stopped
+
+networks:
+  ticketbroker-network:
+    external: true

@@ -1,7 +1,7 @@
 version: '3.8'
 
-# Legacy file - use docker-compose.infrastructure.yml and docker-compose.app.yml instead
-# This file is kept for backward compatibility but will be removed in the future
+# Infrastructure services: PostgreSQL, Loki, Grafana, Promtail
+# Usage: docker-compose -f docker-compose.infrastructure.yml up -d
 
 services:
   postgres:

@@ -1,0 +1,28 @@
+version: '3.8'
+
+# Production override: Pull images from GitHub Container Registry instead of building
+# Usage: docker-compose -f docker-compose.infrastructure.yml -f docker-compose.app.yml -f docker-compose.app.prod.yml up -d
+# Set environment variables:
+#   - DOCKER_REGISTRY=ghcr.io (default)
+#   - GITHUB_REPOSITORY=owner/repo-name (e.g., username/TicketBrokerSpring)
+#   - IMAGE_TAG=latest or v1.0.0 (default: latest)
+#   - SPRING_PROFILES_ACTIVE=prod (default: prod)
+#   - POSTGRES_PROD_PASSWORD=your_prod_password
+
+services:
+  ticketbroker-api:
+    # Production: pull from registry (no build)
+    # Override build by not specifying it - docker-compose will use image only
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY:-owner/ticketbrokerspring}-backend:${IMAGE_TAG:-latest}
+    pull_policy: always
+    environment:
+      # Spring Profile - set to 'prod' for production
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
+      # Database credentials for prod profile
+      POSTGRES_PROD_PASSWORD: ${POSTGRES_PROD_PASSWORD:-prod_password_change_me}
+
+  ticketbroker-frontend:
+    # Production: pull from registry (no build)
+    # Override build by not specifying it - docker-compose will use image only
+    image: ${DOCKER_REGISTRY:-ghcr.io}/${GITHUB_REPOSITORY:-owner/ticketbrokerspring}-frontend:${IMAGE_TAG:-latest}
+    pull_policy: always
