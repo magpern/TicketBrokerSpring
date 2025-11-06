@@ -1,36 +1,26 @@
-.contact-page {
-  max-width: 600px;
+.booking-container {
+  max-width: 800px;
   margin: 0 auto;
-}
-
-.contact-page h2 {
-  color: #dc2626;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.contact-info {
-  background: rgba(255, 255, 255, 0.8);
   padding: 20px;
-  border-radius: 15px;
-  margin-bottom: 30px;
-  text-align: center;
 }
 
-.contact-info a {
-  color: #dc2626;
-  text-decoration: none;
-}
-
-.contact-info a:hover {
-  text-decoration: underline;
-}
-
-.contact-form {
-  background: rgba(255, 255, 255, 0.8);
+.booking-step {
+  background: rgba(255, 255, 255, 0.95);
   padding: 30px;
   border-radius: 15px;
-  margin-bottom: 30px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.booking-step h2 {
+  color: #dc2626;
+  margin-bottom: 15px;
+  font-size: 1.8rem;
+}
+
+.booking-step > p {
+  margin-bottom: 25px;
+  color: #374151;
+  line-height: 1.6;
 }
 
 .form-group {
@@ -44,21 +34,65 @@
   color: #374151;
 }
 
-.form-group input,
+.form-group input[type="text"],
+.form-group input[type="email"],
+.form-group input[type="tel"],
+.form-group select,
 .form-group textarea {
   width: 100%;
-  padding: 15px;
+  padding: 0.75rem;
   border: 2px solid #e5e7eb;
-  border-radius: 10px;
+  border-radius: 8px;
   font-size: 1rem;
   font-family: inherit;
   transition: border-color 0.3s ease;
+  box-sizing: border-box;
 }
 
-.form-group input:focus,
+.form-group input[type="text"]:focus,
+.form-group input[type="email"]:focus,
+.form-group input[type="tel"]:focus,
+.form-group select:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: #dc2626;
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.form-group select {
+  background-color: white;
+  cursor: pointer;
+}
+
+.form-group input[type="checkbox"] {
+  margin-right: 8px;
+  width: auto;
+  cursor: pointer;
+}
+
+.form-group label:has(input[type="checkbox"]) {
+  display: flex;
+  align-items: center;
+  font-weight: normal;
+  cursor: pointer;
+}
+
+.step-actions {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #fecaca;
 }
 
 .success-message {
@@ -70,7 +104,40 @@
   border: 1px solid #a7f3d0;
 }
 
-.actions {
-  text-align: center;
+.contact-info h3 {
+  color: #dc2626;
+  margin-bottom: 15px;
+  font-size: 1.3rem;
 }
 
+.contact-info p {
+  margin-bottom: 10px;
+  color: #374151;
+}
+
+.help-links p {
+  margin-bottom: 15px;
+  color: #374151;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .booking-container {
+    padding: 10px;
+  }
+  
+  .booking-step {
+    padding: 20px;
+  }
+  
+  .help-links div {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .help-links .btn {
+    margin-bottom: 10px;
+    width: 100%;
+    max-width: 300px;
+  }
+}

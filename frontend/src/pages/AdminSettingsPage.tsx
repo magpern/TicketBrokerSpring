@@ -118,10 +118,26 @@ function AdminSettingsPage() {
 
       // Add file uploads if present
       if (classPhotoFile) {
+        console.log('Adding class photo to FormData:', classPhotoFile.name, classPhotoFile.size, classPhotoFile.type)
         formData.append('class_photo', classPhotoFile)
+      } else {
+        console.log('No class photo file selected')
       }
       if (qrLogoFile) {
+        console.log('Adding QR logo to FormData:', qrLogoFile.name, qrLogoFile.size, qrLogoFile.type)
         formData.append('qr_logo', qrLogoFile)
+      } else {
+        console.log('No QR logo file selected')
+      }
+
+      // Log FormData contents for debugging
+      console.log('FormData entries:')
+      for (const [key, value] of formData.entries()) {
+        if (value instanceof File) {
+          console.log(`  ${key}: File(${value.name}, ${value.size} bytes, ${value.type})`)
+        } else {
+          console.log(`  ${key}: ${value}`)
+        }
       }
 
       // Don't set Content-Type header - axios will set it automatically with boundary for FormData

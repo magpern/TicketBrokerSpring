@@ -2,6 +2,7 @@ package com.ticketbroker.controller.api;
 
 import com.ticketbroker.dto.BookingRequest;
 import com.ticketbroker.dto.BookingResponse;
+import com.ticketbroker.dto.ContactRequest;
 import com.ticketbroker.dto.ShowResponse;
 import com.ticketbroker.dto.TicketValidationRequest;
 import com.ticketbroker.model.Booking;
@@ -206,6 +207,7 @@ public class PublicApiController {
     public ResponseEntity<Map<String, String>> getSettings() {
         Map<String, String> settings = new HashMap<>();
         settings.put("concertName", settingsService.getValue("concert_name", "Klasskonsert 24C"));
+        settings.put("welcomeMessage", settingsService.getValue("welcome_message", "Välkommen till 24c:s klasspelning!"));
         settings.put("concertDate", settingsService.getValue("concert_date", "29/1 2026"));
         settings.put("concertVenue", settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm"));
         settings.put("adultPrice", settingsService.getValue("adult_ticket_price", "200"));
@@ -213,7 +215,42 @@ public class PublicApiController {
         settings.put("swishNumber", settingsService.getValue("swish_number", "012 345 67 89"));
         settings.put("contactEmail", settingsService.getValue("contact_email", "admin@example.com"));
         
+        // Include class photo data if available
+        String classPhotoData = settingsService.getValue("class_photo_data", null);
+        if (classPhotoData != null) {
+            settings.put("classPhotoData", classPhotoData);
+            settings.put("classPhotoContentType", settingsService.getValue("class_photo_content_type", "image/jpeg"));
+        }
+        
         return ResponseEntity.ok(settings);
+    }
+    
+    @PostMapping("/contact")
+    public ResponseEntity<Map<String, String>> submitContact(@Valid @RequestBody ContactRequest request) {
+        // Validate GDPR consent
+        if (!request.isGdprConsent()) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Du måste godkänna att informationen sparas.");
+            return ResponseEntity.badRequest().body(error);
+        }
+        
+        try {
+            emailService.sendContactMessage(
+                request.getName(),
+                request.getEmail(),
+                request.getPhone(),
+                request.getSubject(),
+                request.getMessage()
+            );
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Tack för ditt meddelande! Vi återkommer så snart som möjligt.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("error", "Ett fel uppstod vid skickande av meddelandet. Försök igen senare.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
+        }
     }
 }
 

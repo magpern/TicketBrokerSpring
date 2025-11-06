@@ -12,6 +12,8 @@ interface Settings {
   adultPrice?: number
   studentPrice?: number
   contactEmail?: string
+  classPhotoData?: string
+  classPhotoContentType?: string
 }
 
 function HomePage() {
@@ -25,10 +27,14 @@ function HomePage() {
     })
     api.get('/public/settings').then((response) => {
       setSettings(response.data)
+      // Set class photo URL from API data if available
+      if (response.data.classPhotoData && response.data.classPhotoContentType) {
+        setClassPhotoUrl(`data:${response.data.classPhotoContentType};base64,${response.data.classPhotoData}`)
+      } else {
+        // Fallback to static image if no class photo in database
+        setClassPhotoUrl('/class-photo.jpg')
+      }
     })
-    // Try to get class photo - you may need to add this endpoint to your backend
-    // For now, using a placeholder or you can add the image to public folder
-    setClassPhotoUrl('/class-photo.jpg') // or use API endpoint if available
   }, [])
 
   // Format show times for display

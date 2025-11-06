@@ -17,6 +17,12 @@ adminApi.interceptors.request.use(
       // Basic auth header
       config.headers.Authorization = `Basic ${btoa(`${username}:${password}`)}`
     }
+    
+    // If sending FormData, remove Content-Type header to let axios set it automatically with boundary
+    if (config.data instanceof FormData) {
+      delete config.headers['Content-Type']
+    }
+    
     return config
   },
   (error) => {

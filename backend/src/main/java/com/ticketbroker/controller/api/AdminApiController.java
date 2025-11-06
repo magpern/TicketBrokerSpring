@@ -224,6 +224,11 @@ public class AdminApiController {
             @RequestParam(value = "class_photo", required = false) org.springframework.web.multipart.MultipartFile classPhoto,
             @RequestParam(value = "qr_logo", required = false) org.springframework.web.multipart.MultipartFile qrLogo) {
         
+        org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(AdminApiController.class);
+        logger.info("Received settings update request - classPhoto: {}, qrLogo: {}", 
+                   classPhoto != null ? (classPhoto.isEmpty() ? "empty" : "present") : "null",
+                   qrLogo != null ? (qrLogo.isEmpty() ? "empty" : "present") : "null");
+        
         // Handle text settings
         if (concertName != null) settingsService.setValue("concert_name", concertName);
         if (welcomeMessage != null) settingsService.setValue("welcome_message", welcomeMessage);
@@ -242,6 +247,8 @@ public class AdminApiController {
         // Handle class photo upload
         if (classPhoto != null && !classPhoto.isEmpty()) {
             try {
+                logger.info("Processing class photo upload - filename: {}, size: {} bytes, contentType: {}", 
+                           classPhoto.getOriginalFilename(), classPhoto.getSize(), classPhoto.getContentType());
                 byte[] photoBytes = classPhoto.getBytes();
                 String photoBase64 = java.util.Base64.getEncoder().encodeToString(photoBytes);
                 String contentType = classPhoto.getContentType();
@@ -255,14 +262,20 @@ public class AdminApiController {
                 }
                 settingsService.setValue("class_photo_data", photoBase64);
                 settingsService.setValue("class_photo_content_type", contentType);
+                logger.info("Class photo saved successfully - size: {} bytes, contentType: {}", photoBytes.length, contentType);
             } catch (Exception e) {
+                logger.error("Failed to process class photo", e);
                 throw new RuntimeException("Failed to process class photo", e);
             }
+        } else {
+            logger.debug("No class photo uploaded (classPhoto is null or empty)");
         }
         
         // Handle QR logo upload
         if (qrLogo != null && !qrLogo.isEmpty()) {
             try {
+                logger.info("Processing QR logo upload - filename: {}, size: {} bytes, contentType: {}", 
+                           qrLogo.getOriginalFilename(), qrLogo.getSize(), qrLogo.getContentType());
                 byte[] logoBytes = qrLogo.getBytes();
                 String logoBase64 = java.util.Base64.getEncoder().encodeToString(logoBytes);
                 String contentType = qrLogo.getContentType();
@@ -276,9 +289,13 @@ public class AdminApiController {
                 }
                 settingsService.setValue("qr_logo_data", logoBase64);
                 settingsService.setValue("qr_logo_content_type", contentType);
+                logger.info("QR logo saved successfully - size: {} bytes, contentType: {}", logoBytes.length, contentType);
             } catch (Exception e) {
+                logger.error("Failed to process QR logo", e);
                 throw new RuntimeException("Failed to process QR logo", e);
             }
+        } else {
+            logger.debug("No QR logo uploaded (qrLogo is null or empty)");
         }
         
         // Return updated settings

@@ -288,5 +288,51 @@ public class EmailService {
             booking.getBuyerConfirmedPayment() ? "Betalning bekräftad av köpare" : "Väntar på betalning"
         );
     }
+    
+    public void sendContactMessage(String name, String email, String phone, String subject, String message) throws MessagingException {
+        String adminEmail = settingsService.getValue("admin_email", "klasskonsertgruppen@gmail.com");
+        String concertName = settingsService.getValue("concert_name", "Klasskonsert 24C");
+        
+        MimeMessage mimeMessage = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
+        
+        helper.setFrom(adminEmail);
+        helper.setTo(adminEmail);
+        helper.setReplyTo(email);
+        helper.setSubject("Kontaktformulär: " + subject + " - " + concertName);
+        
+        String phoneInfo = phone != null && !phone.isEmpty() 
+            ? "<li><strong>Telefon:</strong> " + phone + "</li>" 
+            : "";
+        
+        String htmlContent = String.format("""
+            <h2>Nytt meddelande från kontaktformuläret</h2>
+            <p>Du har fått ett nytt meddelande från %s kontaktformulär.</p>
+            
+            <h3>Avsändaruppgifter:</h3>
+            <ul>
+                <li><strong>Namn:</strong> %s</li>
+                <li><strong>E-post:</strong> %s</li>
+                %s
+                <li><strong>Ämne:</strong> %s</li>
+            </ul>
+            
+            <h3>Meddelande:</h3>
+            <div style="background: #f9f9f9; padding: 20px; border-radius: 8px; border-left: 4px solid #dc2626;">
+                %s
+            </div>
+            
+            <hr style="margin: 30px 0;">
+            
+            <p><strong>Svara direkt på detta e-postmeddelande för att svara till %s.</strong></p>
+            
+            <p>Meddelandet skickades från: %s kontaktformulär</p>
+            """, 
+            concertName, name, email, phoneInfo, subject, 
+            message.replace("\n", "<br>"), name, concertName);
+        
+        helper.setText(htmlContent, true);
+        mailSender.send(mimeMessage);
+    }
 }
 
