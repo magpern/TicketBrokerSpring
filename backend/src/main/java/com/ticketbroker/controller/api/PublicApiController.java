@@ -11,6 +11,7 @@ import com.ticketbroker.model.Ticket;
 import com.ticketbroker.repository.ShowRepository;
 import com.ticketbroker.service.BookingService;
 import com.ticketbroker.service.EmailService;
+import com.ticketbroker.service.PdfService;
 import com.ticketbroker.service.TicketService;
 import com.ticketbroker.service.SettingsService;
 import com.ticketbroker.util.SwishUrlGenerator;
@@ -32,16 +33,19 @@ public class PublicApiController {
     private final BookingService bookingService;
     private final TicketService ticketService;
     private final EmailService emailService;
+    private final PdfService pdfService;
     private final SettingsService settingsService;
     private final SwishUrlGenerator swishUrlGenerator;
     
     public PublicApiController(ShowRepository showRepository, BookingService bookingService,
                               TicketService ticketService, EmailService emailService,
-                              SettingsService settingsService, SwishUrlGenerator swishUrlGenerator) {
+                              PdfService pdfService, SettingsService settingsService, 
+                              SwishUrlGenerator swishUrlGenerator) {
         this.showRepository = showRepository;
         this.bookingService = bookingService;
         this.ticketService = ticketService;
         this.emailService = emailService;
+        this.pdfService = pdfService;
         this.settingsService = settingsService;
         this.swishUrlGenerator = swishUrlGenerator;
     }
@@ -261,6 +265,63 @@ public class PublicApiController {
                 .map(BookingResponse::fromEntity)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(responses);
+    }
+    
+    @PostMapping("/lost-tickets")
+    public ResponseEntity<Map<String, String>> resendTickets(@RequestParam String email) {
+        Map<String, String> response = new HashMap<>();
+        
+        if (email == null || email.trim().isEmpty()) {
+            response.put("error", "Vänligen ange din e-postadress.");
+            return ResponseEntity.badRequest().body(response);
+        }
+        
+        try {
+            // Find all confirmed bookings with tickets for this email
+            List<Booking> allBookings = bookingService.getBookingsByEmail(email.toLowerCase());
+            List<Booking> confirmedBookings = allBookings.stream()
+                    .filter(b -> "confirmed".equals(b.getStatus()) && b.getTickets() != null && !b.getTickets().isEmpty())
+                    .collect(Collectors.toList());
+            
+            if (confirmedBookings.isEmpty()) {
+                // Always show success message for security (don't reveal if email exists)
+                response.put("message", "Om denna e-post har biljetter kommer dessa skickas dit.");
+                return ResponseEntity.ok(response);
+            }
+            
+            // Send tickets for all confirmed bookings
+            int sentCount = 0;
+            for (Booking booking : confirmedBookings) {
+                try {
+                    byte[] pdfData = pdfService.generateTicketsPdf(booking);
+                    emailService.sendPaymentConfirmed(booking, pdfData);
+                    sentCount++;
+                } catch (Exception e) {
+                    // Log error but continue with other bookings
+                    org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PublicApiController.class);
+                    logger.error("Failed to resend tickets for booking " + booking.getBookingReference(), e);
+                }
+            }
+            
+            if (sentCount > 0) {
+                if (confirmedBookings.size() == 1) {
+                    response.put("message", "Om denna e-post har biljetter kommer dessa skickas dit.");
+                } else {
+                    response.put("message", String.format("Om denna e-post har biljetter kommer dessa skickas dit (%d bokningar hittades).", confirmedBookings.size()));
+                }
+            } else {
+                response.put("error", "Ett fel uppstod vid skickande av e-post. Försök igen senare.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(PublicApiController.class);
+            logger.error("Failed to resend tickets", e);
+            // Always show success message for security
+            response.put("message", "Om denna e-post har biljetter kommer dessa skickas dit.");
+            return ResponseEntity.ok(response);
+        }
     }
 }
 
