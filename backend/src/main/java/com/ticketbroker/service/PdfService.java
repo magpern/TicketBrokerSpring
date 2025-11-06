@@ -47,7 +47,7 @@ public class PdfService {
                 document.addPage(page);
                 
                 try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-                    drawTicket(contentStream, ticket, booking, concertName, concertDate, concertVenue, logoBytes);
+                    drawTicket(document, contentStream, page, ticket, booking, concertName, concertDate, concertVenue, logoBytes);
                 }
             }
             
@@ -57,10 +57,11 @@ public class PdfService {
         }
     }
     
-    private void drawTicket(PDPageContentStream contentStream, Ticket ticket, Booking booking,
+    private void drawTicket(PDDocument document, PDPageContentStream contentStream, PDPage page, 
+                           Ticket ticket, Booking booking,
                            String concertName, String concertDate, String concertVenue,
                            byte[] logoBytes) throws IOException {
-        PDRectangle pageSize = contentStream.getPage().getMediaBox();
+        PDRectangle pageSize = page.getMediaBox();
         float margin = 50;
         float width = pageSize.getWidth() - 2 * margin;
         float y = pageSize.getHeight() - margin;

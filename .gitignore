@@ -34,7 +34,8 @@ logs/
 
 # IDE
 .idea/
-.vscode/
+.vscode/launch.json
+.vscode/settings.json
 *.swp
 *.swo
 *~

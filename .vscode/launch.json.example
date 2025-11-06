@@ -9,11 +9,11 @@
             "projectName": "ticketbroker-api",
             "args": "--spring.profiles.active=dev",
             "env": {
-                "POSTGRES_DEV_PASSWORD": "raspberry",
-                "POSTGRES_PROD_PASSWORD": "LblG88lVAaXyHT50in6m",
-                "MAIL_USERNAME": "klasskonsertgruppen@gmail.com",
-                "MAIL_PASSWORD": "dqup hedn ftxs dbhj",
-                "ADMIN_PASSWORD": "klasskonsert26",
+                "POSTGRES_DEV_PASSWORD": "CHANGE_ME",
+                "POSTGRES_PROD_PASSWORD": "CHANGE_ME",
+                "MAIL_USERNAME": "",
+                "MAIL_PASSWORD": "",
+                "ADMIN_PASSWORD": "CHANGE_ME",
                 "SPRING_PROFILES_ACTIVE": "dev"
             },
             "vmArgs": "-Dspring.profiles.active=dev",
@@ -29,11 +29,11 @@
             "projectName": "ticketbroker-api",
             "args": "--spring.profiles.active=prod",
             "env": {
-                "POSTGRES_DEV_PASSWORD": "raspberry",
-                "POSTGRES_PROD_PASSWORD": "LblG88lVAaXyHT50in6m",
-                "MAIL_USERNAME": "klasskonsertgruppen@gmail.com",
-                "MAIL_PASSWORD": "dqup hedn ftxs dbhj",
-                "ADMIN_PASSWORD": "klasskonsert26",
+                "POSTGRES_DEV_PASSWORD": "CHANGE_ME",
+                "POSTGRES_PROD_PASSWORD": "CHANGE_ME",
+                "MAIL_USERNAME": "",
+                "MAIL_PASSWORD": "",
+                "ADMIN_PASSWORD": "CHANGE_ME",
                 "SPRING_PROFILES_ACTIVE": "prod"
             },
             "vmArgs": "-Dspring.profiles.active=prod",
