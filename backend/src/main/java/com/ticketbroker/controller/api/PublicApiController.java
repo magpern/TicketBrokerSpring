@@ -153,12 +153,51 @@ public class PublicApiController {
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
         
         Map<String, Object> response = new HashMap<>();
+        
+        // Check if ticket is already used
+        if (ticket.getIsUsed()) {
+            response.put("valid", false);
+            response.put("message", "Biljett redan använd");
+            response.put("status", "used");
+            response.put("ticketReference", ticket.getTicketReference());
+            if (ticket.getUsedAt() != null) {
+                response.put("usedAt", ticket.getUsedAt().toString());
+            }
+            return ResponseEntity.ok(response);
+        }
+        
+        // Check if booking is confirmed
+        if (!"confirmed".equals(ticket.getBooking().getStatus())) {
+            response.put("valid", false);
+            response.put("message", "Biljett inte bekräftad");
+            response.put("status", "unconfirmed");
+            response.put("ticketReference", ticket.getTicketReference());
+            response.put("bookingStatus", ticket.getBooking().getStatus());
+            return ResponseEntity.ok(response);
+        }
+        
+        // Check if ticket is for the correct show (if showId provided)
+        if (request.getShowId() != null && !request.getShowId().equals(ticket.getShow().getId())) {
+            response.put("valid", false);
+            response.put("message", "Biljett för fel föreställning");
+            response.put("status", "wrong_show");
+            response.put("ticketReference", ticket.getTicketReference());
+            response.put("ticketShowId", ticket.getShow().getId());
+            response.put("validationShowId", request.getShowId());
+            return ResponseEntity.ok(response);
+        }
+        
+        // Mark ticket as used
+        ticketService.markTicketAsUsed(ticket, "Door validation");
+        
+        // Return success response
         response.put("valid", true);
+        response.put("message", "Biljett godkänd - välkommen in!");
+        response.put("status", "success");
         response.put("ticketReference", ticket.getTicketReference());
-        response.put("ticketType", ticket.getTicketType());
-        response.put("isUsed", ticket.getIsUsed());
-        response.put("showTime", ticket.getShow().getStartTime() + "-" + ticket.getShow().getEndTime());
+        response.put("ticketType", "normal".equals(ticket.getTicketType()) ? "Ordinarie" : "Student");
         response.put("bookingReference", ticket.getBooking().getBookingReference());
+        response.put("usedAt", ticket.getUsedAt().toString());
         
         return ResponseEntity.ok(response);
     }

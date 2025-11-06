@@ -1,0 +1,361 @@
+/* Validate Ticket Page - Mobile-optimized with purple gradient */
+.validate-ticket-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 10px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #333;
+}
+
+.validate-header {
+  text-align: center;
+  margin-bottom: 15px;
+  padding: 15px 0;
+}
+
+.validate-header h1 {
+  color: white;
+  font-size: 2rem;
+  margin: 0;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Camera Container */
+.camera-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 15px;
+  position: relative;
+}
+
+.camera-section {
+  flex: 1;
+  position: relative;
+  background: #000;
+  border-radius: 12px;
+  overflow: hidden;
+  min-height: 300px;
+}
+
+.camera-section video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Green overlay for valid tickets */
+.valid-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(34, 197, 94, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  animation: flashGreen 2s ease-in-out;
+}
+
+@keyframes flashGreen {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+.valid-content {
+  text-align: center;
+  color: white;
+}
+
+.valid-icon {
+  font-size: 4rem;
+  margin-bottom: 10px;
+}
+
+.valid-text {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* Manual Input Section */
+.manual-section {
+  padding: 20px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ticket-input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  margin-bottom: 15px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.ticket-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.validate-btn {
+  width: 100%;
+  padding: 15px;
+  background: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.validate-btn:hover {
+  background: #2563eb;
+}
+
+/* Show Selection */
+.show-selection {
+  margin-bottom: 15px;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.show-label {
+  display: block;
+  color: white;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.show-select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #374151;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+}
+
+.show-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 15px;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.action-btn.camera {
+  background: #3b82f6;
+  color: white;
+}
+
+.action-btn.camera:hover {
+  background: #2563eb;
+}
+
+.action-btn.camera.active {
+  background: #1d4ed8;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+.action-btn.manual {
+  background: white;
+  color: #374151;
+  border: 2px solid #e5e7eb;
+}
+
+.action-btn.manual:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+.action-btn.manual.active {
+  background: #f3f4f6;
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.btn-icon {
+  font-size: 18px;
+}
+
+/* Loading Indicator */
+.loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 20;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(255, 255, 255, 0.3);
+  border-top: 4px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.loading-text {
+  color: white;
+  font-weight: 600;
+}
+
+/* Ticket Popup */
+.ticket-popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.popup-content {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.popup-icon {
+  font-size: 2rem;
+}
+
+.popup-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.popup-message {
+  font-size: 1.1rem;
+  margin-bottom: 15px;
+  line-height: 1.5;
+}
+
+.popup-details {
+  font-size: 0.9rem;
+  color: #6b7280;
+  margin-bottom: 20px;
+  line-height: 1.4;
+}
+
+.popup-dismiss {
+  width: 100%;
+  padding: 12px;
+  background: #374151;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.popup-dismiss:hover {
+  background: #1f2937;
+}
+
+/* Popup themes */
+.ticket-popup.error .popup-content {
+  border-top: 4px solid #ef4444;
+}
+
+.ticket-popup.error .popup-icon {
+  color: #ef4444;
+}
+
+.ticket-popup.warning .popup-content {
+  border-top: 4px solid #f59e0b;
+}
+
+.ticket-popup.warning .popup-icon {
+  color: #f59e0b;
+}
+
+.ticket-popup.used .popup-content {
+  border-top: 4px solid #f59e0b;
+}
+
+.ticket-popup.used .popup-icon {
+  color: #f59e0b;
+}
+

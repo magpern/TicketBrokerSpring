@@ -7,6 +7,7 @@ import FindBookingPage from './pages/FindBookingPage'
 import ContactPage from './pages/ContactPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
+import ValidateTicketPage from './pages/ValidateTicketPage'
 import './App.css'
 
 // Protected route component
@@ -38,6 +39,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/validate-ticket" element={<ValidateTicketPage />} />
         </Routes>
       </div>
     </Router>

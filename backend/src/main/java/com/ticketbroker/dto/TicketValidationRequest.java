@@ -7,5 +7,7 @@ import lombok.Data;
 public class TicketValidationRequest {
     @NotBlank(message = "Ticket reference is required")
     private String ticketReference;
+    
+    private Long showId; // Optional: to validate ticket is for correct show
 }
 
