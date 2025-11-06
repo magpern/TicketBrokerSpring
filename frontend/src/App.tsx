@@ -7,6 +7,7 @@ import FindBookingPage from './pages/FindBookingPage'
 import ContactPage from './pages/ContactPage'
 import AdminLoginPage from './pages/AdminLoginPage'
 import AdminDashboardPage from './pages/AdminDashboardPage'
+import AdminSettingsPage from './pages/AdminSettingsPage'
 import ValidateTicketPage from './pages/ValidateTicketPage'
 import './App.css'
 
@@ -36,6 +37,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/settings"
+            element={
+              <ProtectedRoute>
+                <AdminSettingsPage />
               </ProtectedRoute>
             }
           />

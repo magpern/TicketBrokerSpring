@@ -177,24 +177,112 @@ public class AdminApiController {
     public ResponseEntity<Map<String, String>> getSettings() {
         Map<String, String> settings = new HashMap<>();
         settings.put("concertName", settingsService.getValue("concert_name", "Klasskonsert 24C"));
+        settings.put("welcomeMessage", settingsService.getValue("welcome_message", "Välkommen till 24c:s klasspelning!"));
         settings.put("concertDate", settingsService.getValue("concert_date", "29/1 2026"));
         settings.put("concertVenue", settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm"));
         settings.put("adultPrice", settingsService.getValue("adult_ticket_price", "200"));
         settings.put("studentPrice", settingsService.getValue("student_ticket_price", "100"));
+        settings.put("adultTicketLabel", settingsService.getValue("adult_ticket_label", "Ordinariebiljett"));
+        settings.put("studentTicketLabel", settingsService.getValue("student_ticket_label", "Studentbiljett"));
         settings.put("swishNumber", settingsService.getValue("swish_number", "012 345 67 89"));
         settings.put("swishRecipientName", settingsService.getValue("swish_recipient_name", "Event Organizer"));
         settings.put("contactEmail", settingsService.getValue("contact_email", "admin@example.com"));
         settings.put("adminEmail", settingsService.getValue("admin_email", "klasskonsertgruppen@gmail.com"));
+        settings.put("maxTicketsPerBooking", settingsService.getValue("max_tickets_per_booking", "4"));
+        
+        // Include image data if present
+        String classPhotoData = settingsService.getValue("class_photo_data", null);
+        if (classPhotoData != null) {
+            settings.put("classPhotoData", classPhotoData);
+            settings.put("classPhotoContentType", settingsService.getValue("class_photo_content_type", "image/jpeg"));
+        }
+        
+        String qrLogoData = settingsService.getValue("qr_logo_data", null);
+        if (qrLogoData != null) {
+            settings.put("qrLogoData", qrLogoData);
+            settings.put("qrLogoContentType", settingsService.getValue("qr_logo_content_type", "image/jpeg"));
+        }
         
         return ResponseEntity.ok(settings);
     }
     
-    @PostMapping("/settings")
-    public ResponseEntity<Map<String, String>> updateSettings(@RequestBody Map<String, String> settings) {
-        for (Map.Entry<String, String> entry : settings.entrySet()) {
-            settingsService.setValue(entry.getKey(), entry.getValue());
+    @PostMapping(value = "/settings", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_JSON_VALUE})
+    public ResponseEntity<Map<String, String>> updateSettings(
+            @RequestParam(value = "concert_name", required = false) String concertName,
+            @RequestParam(value = "welcome_message", required = false) String welcomeMessage,
+            @RequestParam(value = "concert_date", required = false) String concertDate,
+            @RequestParam(value = "concert_venue", required = false) String concertVenue,
+            @RequestParam(value = "adult_ticket_price", required = false) String adultPrice,
+            @RequestParam(value = "student_ticket_price", required = false) String studentPrice,
+            @RequestParam(value = "adult_ticket_label", required = false) String adultTicketLabel,
+            @RequestParam(value = "student_ticket_label", required = false) String studentTicketLabel,
+            @RequestParam(value = "swish_number", required = false) String swishNumber,
+            @RequestParam(value = "swish_recipient_name", required = false) String swishRecipientName,
+            @RequestParam(value = "contact_email", required = false) String contactEmail,
+            @RequestParam(value = "admin_email", required = false) String adminEmail,
+            @RequestParam(value = "max_tickets_per_booking", required = false) String maxTicketsPerBooking,
+            @RequestParam(value = "class_photo", required = false) org.springframework.web.multipart.MultipartFile classPhoto,
+            @RequestParam(value = "qr_logo", required = false) org.springframework.web.multipart.MultipartFile qrLogo) {
+        
+        // Handle text settings
+        if (concertName != null) settingsService.setValue("concert_name", concertName);
+        if (welcomeMessage != null) settingsService.setValue("welcome_message", welcomeMessage);
+        if (concertDate != null) settingsService.setValue("concert_date", concertDate);
+        if (concertVenue != null) settingsService.setValue("concert_venue", concertVenue);
+        if (adultPrice != null) settingsService.setValue("adult_ticket_price", adultPrice);
+        if (studentPrice != null) settingsService.setValue("student_ticket_price", studentPrice);
+        if (adultTicketLabel != null) settingsService.setValue("adult_ticket_label", adultTicketLabel);
+        if (studentTicketLabel != null) settingsService.setValue("student_ticket_label", studentTicketLabel);
+        if (swishNumber != null) settingsService.setValue("swish_number", swishNumber);
+        if (swishRecipientName != null) settingsService.setValue("swish_recipient_name", swishRecipientName);
+        if (contactEmail != null) settingsService.setValue("contact_email", contactEmail);
+        if (adminEmail != null) settingsService.setValue("admin_email", adminEmail);
+        if (maxTicketsPerBooking != null) settingsService.setValue("max_tickets_per_booking", maxTicketsPerBooking);
+        
+        // Handle class photo upload
+        if (classPhoto != null && !classPhoto.isEmpty()) {
+            try {
+                byte[] photoBytes = classPhoto.getBytes();
+                String photoBase64 = java.util.Base64.getEncoder().encodeToString(photoBytes);
+                String contentType = classPhoto.getContentType();
+                if (contentType == null) {
+                    String filename = classPhoto.getOriginalFilename();
+                    if (filename != null && filename.toLowerCase().endsWith(".png")) {
+                        contentType = "image/png";
+                    } else {
+                        contentType = "image/jpeg";
+                    }
+                }
+                settingsService.setValue("class_photo_data", photoBase64);
+                settingsService.setValue("class_photo_content_type", contentType);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to process class photo", e);
+            }
         }
-        return ResponseEntity.ok(settings);
+        
+        // Handle QR logo upload
+        if (qrLogo != null && !qrLogo.isEmpty()) {
+            try {
+                byte[] logoBytes = qrLogo.getBytes();
+                String logoBase64 = java.util.Base64.getEncoder().encodeToString(logoBytes);
+                String contentType = qrLogo.getContentType();
+                if (contentType == null) {
+                    String filename = qrLogo.getOriginalFilename();
+                    if (filename != null && filename.toLowerCase().endsWith(".png")) {
+                        contentType = "image/png";
+                    } else {
+                        contentType = "image/jpeg";
+                    }
+                }
+                settingsService.setValue("qr_logo_data", logoBase64);
+                settingsService.setValue("qr_logo_content_type", contentType);
+            } catch (Exception e) {
+                throw new RuntimeException("Failed to process QR logo", e);
+            }
+        }
+        
+        // Return updated settings
+        return getSettings();
     }
 }
 
