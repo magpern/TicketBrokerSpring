@@ -1,0 +1,56 @@
+.find-booking-page {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.find-booking-page h2 {
+  color: #dc2626;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.find-booking-page p {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.find-booking-form {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 30px;
+  border-radius: 15px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #dc2626;
+}
+
+.error-message {
+  background: #fee2e2;
+  color: #991b1b;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid #fecaca;
+}
+

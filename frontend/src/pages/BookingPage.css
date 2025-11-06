@@ -1,14 +1,201 @@
-.booking-page {
+/* Booking container */
+.booking-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
 }
 
-.booking-form {
-  background: white;
+.booking-step {
+  background: rgba(255, 255, 255, 0.9);
   padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.booking-step h2 {
+  color: #dc2626;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.concert-date-info {
+  background: rgba(220, 38, 38, 0.1);
+  border: 2px solid #dc2626;
   border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  padding: 15px;
+  margin-bottom: 25px;
+  text-align: center;
+}
+
+.concert-date-info h3 {
+  color: #dc2626;
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+/* Time selection */
+.time-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.time-option {
+  position: relative;
+}
+
+.time-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+}
+
+.time-label {
+  display: block;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 2px solid #e5e7eb;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.time-option input[type="radio"]:checked + .time-label {
+  border-color: #dc2626;
+  background: rgba(220, 38, 38, 0.1);
+}
+
+.time-slot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.time {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.availability {
+  font-size: 0.9rem;
+}
+
+.available {
+  color: #059669;
+  font-weight: 500;
+}
+
+.sold-out {
+  color: #dc2626;
+  font-weight: 600;
+}
+
+/* Ticket selection */
+.selected-time {
+  background: rgba(220, 38, 38, 0.1);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+.ticket-selection {
+  margin-bottom: 30px;
+}
+
+.ticket-type {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+.ticket-type h3 {
+  color: #dc2626;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.ticket-counter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+}
+
+.btn-counter {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 2px solid #dc2626;
+  background: white;
+  color: #dc2626;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-counter:hover:not(:disabled) {
+  background: #dc2626;
+  color: white;
+}
+
+.btn-counter:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ticket-counter input {
+  width: 60px;
+  height: 44px;
+  text-align: center;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: white;
+}
+
+.total-section {
+  background: rgba(220, 38, 38, 0.1);
+  padding: 20px;
+  border-radius: 15px;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.total-display {
+  font-size: 1.2rem;
+  margin-bottom: 15px;
+}
+
+/* Contact form */
+.booking-summary {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+}
+
+.booking-summary h3 {
+  color: #dc2626;
+  margin-bottom: 15px;
+}
+
+.booking-summary ul {
+  list-style: none;
+  text-align: left;
+}
+
+.booking-summary li {
+  padding: 5px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.contact-form {
+  margin-bottom: 30px;
 }
 
 .form-group {
@@ -17,36 +204,70 @@
 
 .form-group label {
   display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #374151;
 }
 
 .form-group input {
   width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  font-size: 16px;
-}
-
-.form-group input[type="checkbox"] {
-  width: auto;
-  margin-right: 10px;
-}
-
-.btn {
-  width: 100%;
   padding: 15px;
-  background-color: #dc2626;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
-  font-weight: bold;
-  cursor: pointer;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 1rem;
+  transition: border-color 0.3s ease;
 }
 
-.btn:hover {
-  background-color: #b91c1c;
+.form-group input:focus {
+  outline: none;
+  border-color: #dc2626;
 }
 
+.checkbox-group {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+  width: auto;
+  margin-top: 5px;
+}
+
+.checkbox-group label {
+  margin-bottom: 0;
+  font-weight: normal;
+}
+
+/* Step actions */
+.step-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.step-actions .btn {
+  flex: 1;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .step-actions {
+    flex-direction: column;
+  }
+  
+  .ticket-counter {
+    gap: 15px;
+  }
+  
+  .btn-counter {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+  
+  .ticket-counter input {
+    width: 50px;
+    height: 40px;
+  }
+}

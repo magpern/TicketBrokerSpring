@@ -1,0 +1,23 @@
+.help-page {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.help-page h2 {
+  color: #dc2626;
+  margin-bottom: 20px;
+}
+
+.help-page p {
+  margin-bottom: 30px;
+  font-size: 1.1rem;
+}
+
+.actions {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+

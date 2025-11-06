@@ -1,35 +1,204 @@
-.booking-success-page {
+/* Success page */
+.success-container {
   max-width: 600px;
   margin: 0 auto;
-  padding: 20px;
+  text-align: center;
 }
 
-.booking-details {
-  background: white;
+.success-message {
+  background: rgba(16, 185, 129, 0.1);
   padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  margin-bottom: 30px;
+  border: 2px solid #a7f3d0;
 }
 
-.booking-details p {
-  margin: 15px 0;
-  font-size: 18px;
+.success-message h2 {
+  color: #059669;
+  margin-bottom: 15px;
 }
 
-.btn {
-  width: 100%;
-  padding: 15px;
-  background-color: #dc2626;
-  color: white;
-  border: none;
+.booking-reference-display {
+  background: #f8f9fa;
+  border: 2px solid #dc3545;
   border-radius: 8px;
-  font-size: 18px;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: center;
+}
+
+.reference-code {
+  font-size: 2rem;
   font-weight: bold;
-  cursor: pointer;
+  color: #dc3545;
+  letter-spacing: 2px;
+  margin: 10px 0;
+}
+
+.reference-warning {
+  color: #dc3545;
+  font-weight: bold;
+  margin: 10px 0 0 0;
+}
+
+.payment-action-inline {
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #dc3545;
+}
+
+.payment-action-inline .btn-large {
+  margin-bottom: 10px;
+}
+
+.payment-action-inline .payment-note {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.payment-initiated {
   margin-top: 20px;
 }
 
-.btn:hover {
-  background-color: #b91c1c;
+.status-initiated {
+  color: #17a2b8;
+  font-weight: bold;
+  margin-bottom: 15px;
 }
 
+.payment-instruction {
+  font-size: 1rem;
+  color: #333;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.qr-code-section {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.qr-code-container {
+  margin: 20px 0;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  border: 2px solid #dc3545;
+  display: inline-block;
+}
+
+.qr-code {
+  max-width: 200px;
+  height: auto;
+  display: block;
+}
+
+.qr-instruction {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 15px;
+  font-style: italic;
+}
+
+.booking-details {
+  background: rgba(255, 255, 255, 0.8);
+  padding: 25px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+
+.booking-details h3 {
+  color: #dc2626;
+  margin-bottom: 15px;
+  text-align: center;
+}
+
+.booking-details ul {
+  list-style: none;
+}
+
+.booking-details li {
+  padding: 8px 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.payment-section {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.swish-info {
+  background: #e8f5e8;
+  border: 1px solid #28a745;
+  border-radius: 6px;
+  padding: 15px;
+  margin: 15px 0;
+}
+
+.payment-status {
+  background: rgba(16, 185, 129, 0.1);
+  padding: 20px;
+  border-radius: 15px;
+  margin-bottom: 30px;
+  border: 2px solid #a7f3d0;
+}
+
+.status-confirmed {
+  color: #059669;
+  font-weight: 600;
+}
+
+.status-pending {
+  color: #d97706;
+  font-weight: 600;
+}
+
+.ticket-references {
+  margin-top: 15px;
+}
+
+.ticket-references h4 {
+  color: #dc2626;
+  margin-bottom: 10px;
+}
+
+.ticket-references ul {
+  list-style: none;
+  text-align: left;
+}
+
+.ticket-references li {
+  padding: 5px 0;
+}
+
+.actions {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.btn-success {
+  background: #10b981;
+  color: white;
+}
+
+.btn-success:hover {
+  background: #059669;
+  transform: translateY(-2px);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .reference-code {
+    font-size: 1.5rem;
+  }
+  
+  .btn-large {
+    font-size: 1rem;
+    padding: 12px 24px;
+  }
+}
