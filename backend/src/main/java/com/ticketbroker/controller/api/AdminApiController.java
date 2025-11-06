@@ -422,11 +422,27 @@ public class AdminApiController {
     }
     
     @GetMapping("/audit")
-    public ResponseEntity<Page<Map<String, Object>>> getAuditLogs(
+    public ResponseEntity<Map<String, Object>> getAuditLogs(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size) {
+            @RequestParam(defaultValue = "50") int size,
+            @RequestParam(required = false) String action,
+            @RequestParam(required = false) String entity,
+            @RequestParam(required = false) String user) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<com.ticketbroker.model.AuditLog> logs = auditLogRepository.findAllByOrderByTimestampDesc(pageable);
+        Page<com.ticketbroker.model.AuditLog> logs;
+        
+        // Apply filters
+        if (action != null && !action.isEmpty() && entity != null && !entity.isEmpty()) {
+            logs = auditLogRepository.findByActionTypeAndEntityTypeOrderByTimestampDesc(action, entity, pageable);
+        } else if (action != null && !action.isEmpty()) {
+            logs = auditLogRepository.findByActionTypeOrderByTimestampDesc(action, pageable);
+        } else if (entity != null && !entity.isEmpty()) {
+            logs = auditLogRepository.findByEntityTypeOrderByTimestampDesc(entity, pageable);
+        } else if (user != null && !user.isEmpty()) {
+            logs = auditLogRepository.findByUserIdentifierOrderByTimestampDesc(user, pageable);
+        } else {
+            logs = auditLogRepository.findAllByOrderByTimestampDesc(pageable);
+        }
         
         Page<Map<String, Object>> responses = logs.map(log -> {
             Map<String, Object> map = new HashMap<>();
@@ -438,10 +454,31 @@ public class AdminApiController {
             map.put("userType", log.getUserType());
             map.put("userIdentifier", log.getUserIdentifier());
             map.put("details", log.getDetails());
+            map.put("oldValue", log.getOldValue());
+            map.put("newValue", log.getNewValue());
             return map;
         });
         
-        return ResponseEntity.ok(responses);
+        // Get unique values for filters
+        List<String> actions = auditLogRepository.findDistinctActionTypes();
+        List<String> entities = auditLogRepository.findDistinctEntityTypes();
+        List<String> users = auditLogRepository.findDistinctUserIdentifiers();
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("content", responses.getContent());
+        result.put("totalElements", responses.getTotalElements());
+        result.put("totalPages", responses.getTotalPages());
+        result.put("number", responses.getNumber());
+        result.put("size", responses.getSize());
+        result.put("first", responses.isFirst());
+        result.put("last", responses.isLast());
+        result.put("hasNext", responses.hasNext());
+        result.put("hasPrevious", responses.hasPrevious());
+        result.put("actions", actions);
+        result.put("entities", entities);
+        result.put("users", users);
+        
+        return ResponseEntity.ok(result);
     }
     
     @GetMapping("/settings")
