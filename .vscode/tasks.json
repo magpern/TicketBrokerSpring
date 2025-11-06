@@ -2,11 +2,19 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "label": "npm: install",
+            "type": "npm",
+            "script": "install",
+            "path": "frontend",
+            "problemMatcher": []
+        },
+        {
             "label": "npm: dev",
             "type": "npm",
             "script": "dev",
             "path": "frontend",
             "isBackground": true,
+            "dependsOn": "npm: install",
             "problemMatcher": {
                 "owner": "typescript",
                 "pattern": {
