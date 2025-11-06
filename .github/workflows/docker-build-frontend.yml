@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Push Frontend Docker Image
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ${{ github.repository }}-frontend
 
 jobs:
   build-and-push:
@@ -47,7 +47,8 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./frontend
+        file: ./frontend/Dockerfile
         platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
@@ -62,19 +63,21 @@ jobs:
         tag_name: ${{ github.ref_name }}
         name: Release ${{ github.ref_name }}
         body: |
-          🚀 **TicketBroker ${{ github.ref_name }}**
+          🚀 **TicketBroker Frontend ${{ github.ref_name }}**
           
           ## Docker Images
-          - **AMD64**: `ghcr.io/${{ github.repository }}:${{ github.ref_name }}`
-          - **ARM64**: `ghcr.io/${{ github.repository }}:${{ github.ref_name }}`
-          - **Latest**: `ghcr.io/${{ github.repository }}:latest`
+          - **AMD64**: `ghcr.io/${{ github.repository }}-frontend:${{ github.ref_name }}`
+          - **ARM64**: `ghcr.io/${{ github.repository }}-frontend:${{ github.ref_name }}`
+          - **Latest**: `ghcr.io/${{ github.repository }}-frontend:latest`
           
           ## Deployment
-          Update your `docker-compose.pi.yml`:
+          Update your `docker-compose.yml`:
           ```yaml
-          image: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+          frontend:
+            image: ghcr.io/${{ github.repository }}-frontend:${{ github.ref_name }}
           ```
         draft: false
         prerelease: false
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
