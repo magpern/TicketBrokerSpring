@@ -12,6 +12,7 @@ import com.ticketbroker.repository.ShowRepository;
 import com.ticketbroker.service.BookingService;
 import com.ticketbroker.service.EmailService;
 import com.ticketbroker.service.PdfService;
+import com.ticketbroker.service.QrCodeService;
 import com.ticketbroker.service.TicketService;
 import com.ticketbroker.service.SettingsService;
 import com.ticketbroker.util.SwishUrlGenerator;
@@ -34,18 +35,20 @@ public class PublicApiController {
     private final TicketService ticketService;
     private final EmailService emailService;
     private final PdfService pdfService;
+    private final QrCodeService qrCodeService;
     private final SettingsService settingsService;
     private final SwishUrlGenerator swishUrlGenerator;
     
     public PublicApiController(ShowRepository showRepository, BookingService bookingService,
                               TicketService ticketService, EmailService emailService,
-                              PdfService pdfService, SettingsService settingsService, 
-                              SwishUrlGenerator swishUrlGenerator) {
+                              PdfService pdfService, QrCodeService qrCodeService,
+                              SettingsService settingsService, SwishUrlGenerator swishUrlGenerator) {
         this.showRepository = showRepository;
         this.bookingService = bookingService;
         this.ticketService = ticketService;
         this.emailService = emailService;
         this.pdfService = pdfService;
+        this.qrCodeService = qrCodeService;
         this.settingsService = settingsService;
         this.swishUrlGenerator = swishUrlGenerator;
     }
@@ -123,20 +126,47 @@ public class PublicApiController {
     }
     
     @PostMapping("/bookings/{reference}/initiate-payment")
-    public ResponseEntity<Map<String, String>> initiatePayment(@PathVariable String reference,
-                                                               @RequestParam String email) {
+    public ResponseEntity<Map<String, Object>> initiatePayment(@PathVariable String reference,
+                                                               @RequestParam String email,
+                                                               @RequestHeader(value = "User-Agent", defaultValue = "") String userAgent) {
         Booking booking = bookingService.findByReferenceAndEmail(reference, email)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
         
         bookingService.initiatePayment(booking);
         
         String swishNumber = settingsService.getValue("swish_number", "012 345 67 89");
+        String swishRecipientName = settingsService.getValue("swish_recipient_name", "Event Organizer");
         String swishUrl = swishUrlGenerator.generateSwishUrl(swishNumber, booking.getTotalAmount(), 
                                                               booking.getBookingReference());
         
-        Map<String, String> response = new HashMap<>();
+        // Detect if user is on mobile device
+        boolean isMobile = userAgent != null && (
+            userAgent.toLowerCase().contains("android") ||
+            userAgent.toLowerCase().contains("webos") ||
+            userAgent.toLowerCase().contains("iphone") ||
+            userAgent.toLowerCase().contains("ipad") ||
+            userAgent.toLowerCase().contains("ipod") ||
+            userAgent.toLowerCase().contains("blackberry") ||
+            userAgent.toLowerCase().contains("iemobile") ||
+            userAgent.toLowerCase().contains("opera mini")
+        );
+        
+        Map<String, Object> response = new HashMap<>();
         response.put("swishUrl", swishUrl);
         response.put("swishNumber", swishNumber);
+        response.put("swishRecipientName", swishRecipientName);
+        response.put("isMobile", isMobile);
+        
+        // Generate QR code for desktop users
+        if (!isMobile) {
+            try {
+                String qrCodeBase64 = qrCodeService.generateQrCodeBase64(swishUrl);
+                response.put("qrCodeData", "data:image/png;base64," + qrCodeBase64);
+            } catch (Exception e) {
+                // Log error but don't fail the request
+                System.err.println("Failed to generate QR code: " + e.getMessage());
+            }
+        }
         
         return ResponseEntity.ok(response);
     }

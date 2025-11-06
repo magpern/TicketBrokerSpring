@@ -50,7 +50,12 @@ function BookingSuccessPage() {
         setQrCodeData(response.data.qrCodeData || '')
         setPaymentInitiated(true)
         
-        if (isMobile) {
+        // Update booking with swish recipient name if provided
+        if (response.data.swishRecipientName && booking) {
+          setBooking({ ...booking, swishRecipientName: response.data.swishRecipientName, swishNumber: response.data.swishNumber })
+        }
+        
+        if (response.data.isMobile || isMobile) {
           // Mobile: Open Swish app/website
           window.open(response.data.swishUrl, '_blank')
         }

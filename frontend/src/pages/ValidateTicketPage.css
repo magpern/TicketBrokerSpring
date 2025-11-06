@@ -1,4 +1,13 @@
-/* Validate Ticket Page - Mobile-optimized with purple gradient */
+/* Full page container - no header/footer */
+.validate-ticket-page {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #333;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .validate-ticket-container {
   max-width: 500px;
   margin: 0 auto;
@@ -6,8 +15,6 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #333;
 }
 
 .validate-header {
@@ -24,13 +31,12 @@
   text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-/* Camera Container */
+/* Camera Container - Main focus */
 .camera-container {
   flex: 1;
   display: flex;
   flex-direction: column;
   margin-bottom: 15px;
-  position: relative;
 }
 
 .camera-section {
@@ -64,18 +70,9 @@
 }
 
 @keyframes flashGreen {
-  0% {
-    opacity: 0;
-    transform: scale(0.8);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1);
-  }
+  0% { opacity: 0; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.05); }
+  100% { opacity: 0; transform: scale(1); }
 }
 
 .valid-content {
@@ -134,7 +131,7 @@
   background: #2563eb;
 }
 
-/* Show Selection */
+/* Show Selection - Below camera */
 .show-selection {
   margin-bottom: 15px;
   padding: 15px;
@@ -171,7 +168,7 @@
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
 }
 
-/* Action Buttons */
+/* Action Buttons - Simplified */
 .action-buttons {
   display: flex;
   gap: 10px;
@@ -249,12 +246,8 @@
 }
 
 @keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 .loading-text {
@@ -359,3 +352,34 @@
   color: #f59e0b;
 }
 
+/* Responsive design for small screens */
+@media (max-width: 600px) {
+  .validate-ticket-container {
+    padding: 5px;
+  }
+
+  .validate-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .camera-section {
+    min-height: 250px;
+  }
+
+  .valid-icon {
+    font-size: 3rem;
+  }
+
+  .valid-text {
+    font-size: 1.2rem;
+  }
+
+  .action-btn {
+    font-size: 14px;
+    padding: 12px;
+  }
+
+  .btn-icon {
+    font-size: 16px;
+  }
+}

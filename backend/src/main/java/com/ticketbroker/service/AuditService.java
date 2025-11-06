@@ -2,6 +2,8 @@ package com.ticketbroker.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.ticketbroker.model.AuditLog;
 import com.ticketbroker.model.Booking;
 import com.ticketbroker.model.Ticket;
@@ -23,6 +25,8 @@ public class AuditService {
     public AuditService(AuditLogRepository auditLogRepository) {
         this.auditLogRepository = auditLogRepository;
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.registerModule(new JavaTimeModule());
+        this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
     
     @Transactional
