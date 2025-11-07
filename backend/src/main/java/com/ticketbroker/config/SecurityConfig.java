@@ -30,6 +30,7 @@ public class SecurityConfig {
                 .ignoringRequestMatchers("/api/**") // Disable CSRF for all API endpoints (using stateless Basic Auth)
             )
             .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/actuator/**").permitAll() // Allow health checks without authentication
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/api/admin/**").authenticated()
                 .anyRequest().permitAll()
