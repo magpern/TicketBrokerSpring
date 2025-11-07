@@ -5,12 +5,33 @@
   text-align: center;
 }
 
+.success-banner {
+  background: #d1fae5;
+  border: 2px solid #10b981;
+  border-radius: 10px;
+  padding: 15px 20px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.success-banner-text {
+  color: #059669;
+  font-weight: 600;
+  font-size: 1rem;
+  margin: 0;
+}
+
 .success-message {
   background: rgba(16, 185, 129, 0.1);
   padding: 30px;
   border-radius: 20px;
   margin-bottom: 30px;
   border: 2px solid #a7f3d0;
+}
+
+.success-message.compact {
+  padding: 20px;
+  margin-bottom: 20px;
 }
 
 .success-message h2 {

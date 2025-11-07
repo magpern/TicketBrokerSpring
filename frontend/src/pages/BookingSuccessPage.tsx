@@ -74,6 +74,8 @@ function BookingSuccessPage() {
         // Reload booking data
         const response = await api.get(`/public/bookings/${reference}?email=${email}`)
         setBooking(response.data)
+        setPaymentInitiated(false) // Hide QR code section
+        setQrCodeData('') // Clear QR code
         localStorage.removeItem('pendingBookingRef')
         localStorage.removeItem('pendingBookingEmail')
       } catch (error) {
@@ -99,16 +101,27 @@ function BookingSuccessPage() {
   return (
     <Layout>
       <div className="success-container">
-          <div className="success-message">
+          {/* Green success banner when buyer has confirmed payment */}
+          {isPending && (
+            <div className="success-banner">
+              <p className="success-banner-text">
+                Tack! Vi har fått din bekräftelse. Administratören kommer att kontrollera betalningen.
+              </p>
+            </div>
+          )}
+          
+          <div className={`success-message ${isPending ? 'compact' : ''}`}>
             <h2>Tack för din reservation!</h2>
             <div className="booking-reference-display">
               <h3>Din bokningsreferens:</h3>
               <div className="reference-code">{booking.bookingReference}</div>
               <p className="reference-warning">
-                Spara denna referens! Du behöver den för att bekräfta din betalning.
+                {isPending 
+                  ? 'Spara denna referens! Du behöver den för att bekräfta din betalning.'
+                  : 'Spara denna referens! Du behöver den för att bekräfta din betalning.'}
               </p>
               
-              {!isConfirmed && !paymentInitiated && (
+              {!isConfirmed && !isPending && !paymentInitiated && (
                 <div className="payment-action-inline">
                   <button id="pay-now-btn" className="btn btn-primary btn-large" onClick={handleInitiatePayment}>
                     Betala nu
@@ -121,7 +134,7 @@ function BookingSuccessPage() {
                 </div>
               )}
               
-              {paymentInitiated && !isConfirmed && (
+              {paymentInitiated && !isConfirmed && !isPending && (
                 <div className="payment-initiated">
                   <p className="status-initiated">✓ Swish-betalning initierad</p>
                   {isMobile ? (
@@ -152,18 +165,20 @@ function BookingSuccessPage() {
             </div>
           </div>
           
-          <div className="booking-details">
-            <h3>Din bokning:</h3>
-            <ul>
-              <li><strong>Namn:</strong> {booking.firstName} {booking.lastName}</li>
-              <li><strong>E-post:</strong> {booking.email}</li>
-              <li><strong>Telefon:</strong> {booking.phone}</li>
-              <li><strong>Tid:</strong> {booking.show?.startTime}-{booking.show?.endTime}</li>
-              <li><strong>Ordinariebiljetter:</strong> {booking.adultTickets} st</li>
-              <li><strong>Studentbiljetter:</strong> {booking.studentTickets} st</li>
-              <li><strong>Totalt att betala:</strong> {booking.totalAmount} kr</li>
-            </ul>
-          </div>
+          {!isPending && (
+            <div className="booking-details">
+              <h3>Din bokning:</h3>
+              <ul>
+                <li><strong>Namn:</strong> {booking.firstName} {booking.lastName}</li>
+                <li><strong>E-post:</strong> {booking.email}</li>
+                <li><strong>Telefon:</strong> {booking.phone}</li>
+                <li><strong>Tid:</strong> {booking.show?.startTime}-{booking.show?.endTime}</li>
+                <li><strong>Ordinariebiljetter:</strong> {booking.adultTickets} st</li>
+                <li><strong>Studentbiljetter:</strong> {booking.studentTickets} st</li>
+                <li><strong>Totalt att betala:</strong> {booking.totalAmount} kr</li>
+              </ul>
+            </div>
+          )}
           
           {isConfirmed && (
             <div className="payment-status">
@@ -183,13 +198,7 @@ function BookingSuccessPage() {
             </div>
           )}
           
-          {isPending && (
-            <div className="payment-status">
-              <p className="status-pending">✓ Betalning bekräftad av dig. Väntar på administratörens godkännande.</p>
-            </div>
-          )}
-          
-          {!isConfirmed && !paymentInitiated && (
+          {!isConfirmed && !isPending && !paymentInitiated && (
             <div className="payment-section">
               <h3>Betalning via Swish</h3>
               <div className="swish-info">
