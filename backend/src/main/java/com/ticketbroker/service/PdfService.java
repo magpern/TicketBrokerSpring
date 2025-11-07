@@ -63,7 +63,6 @@ public class PdfService {
                            byte[] logoBytes) throws IOException {
         PDRectangle pageSize = page.getMediaBox();
         float margin = 50;
-        float width = pageSize.getWidth() - 2 * margin;
         float y = pageSize.getHeight() - margin;
         
         PDType1Font titleFont = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);

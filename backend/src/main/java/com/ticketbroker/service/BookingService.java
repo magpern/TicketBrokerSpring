@@ -2,6 +2,7 @@ package com.ticketbroker.service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.stereotype.Service;
@@ -38,7 +39,9 @@ public class BookingService {
 
     @Transactional
     public Booking createBooking(Booking booking) {
-        Show show = showRepository.findById(booking.getShow().getId())
+        Objects.requireNonNull(booking.getShow(), "Booking show cannot be null");
+        Long showId = Objects.requireNonNull(booking.getShow().getId(), "Show ID cannot be null");
+        Show show = showRepository.findById(showId)
                 .orElseThrow(() -> new IllegalArgumentException("Show not found"));
 
         // Check availability
@@ -134,6 +137,7 @@ public class BookingService {
 
     @Transactional
     public void deleteBooking(Long bookingId) {
+        Objects.requireNonNull(bookingId, "Booking ID cannot be null");
         bookingRepository.deleteById(bookingId);
     }
 
@@ -153,6 +157,7 @@ public class BookingService {
 
             // Delete all tickets for this booking
             for (com.ticketbroker.model.Ticket ticket : tickets) {
+                Objects.requireNonNull(ticket, "Ticket cannot be null");
                 ticketRepository.delete(ticket);
                 auditService.logTicketDeleted(ticket, adminUser,
                         "Booking status changed from confirmed to " + newStatus.name());

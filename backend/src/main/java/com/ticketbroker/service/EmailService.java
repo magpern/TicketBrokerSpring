@@ -1,6 +1,7 @@
 package com.ticketbroker.service;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -23,28 +24,43 @@ public class EmailService {
     }
 
     public void sendBookingConfirmation(Booking booking, String paymentUrl) throws MessagingException {
-        String adminEmail = settingsService.getValue("admin_email", "klasskonsertgruppen@gmail.com");
-        String swishNumber = settingsService.getValue("swish_number", "012 345 67 89");
-        String concertName = settingsService.getValue("concert_name", "Klasskonsert 24C");
+        String adminEmail = Objects.requireNonNull(
+                settingsService.getValue("admin_email", "klasskonsertgruppen@gmail.com"), "Admin email cannot be null");
+        String swishNumber = Objects.requireNonNull(settingsService.getValue("swish_number", "012 345 67 89"),
+                "Swish number cannot be null");
+        String concertName = Objects.requireNonNull(settingsService.getValue("concert_name", "Klasskonsert 24C"),
+                "Concert name cannot be null");
+        String bookingEmail = Objects.requireNonNull(booking.getEmail(), "Booking email cannot be null");
+        String bookingReference = Objects.requireNonNull(booking.getBookingReference(),
+                "Booking reference cannot be null");
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
 
         helper.setFrom(adminEmail);
-        helper.setTo(booking.getEmail());
-        helper.setSubject("Biljettreservation bekräftad - " + booking.getBookingReference());
+        helper.setTo(bookingEmail);
+        helper.setSubject("Biljettreservation bekräftad - " + bookingReference);
 
         String htmlContent = buildBookingConfirmationEmail(booking, paymentUrl, swishNumber, concertName);
+        Objects.requireNonNull(htmlContent, "HTML content cannot be null");
         helper.setText(htmlContent, true);
 
         mailSender.send(message);
     }
 
     public void sendPaymentConfirmed(Booking booking, byte[] pdfData) throws MessagingException {
-        String concertName = settingsService.getValue("concert_name", "Klasskonsert 24C");
-        String concertDate = settingsService.getValue("concert_date", "29/1 2026");
-        String concertVenue = settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm");
-        String contactEmail = settingsService.getValue("contact_email", "admin@example.com");
+        String concertName = Objects.requireNonNull(settingsService.getValue("concert_name", "Klasskonsert 24C"),
+                "Concert name cannot be null");
+        String concertDate = Objects.requireNonNull(settingsService.getValue("concert_date", "29/1 2026"),
+                "Concert date cannot be null");
+        String concertVenue = Objects.requireNonNull(
+                settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm"), "Concert venue cannot be null");
+        String contactEmail = Objects.requireNonNull(settingsService.getValue("contact_email", "admin@example.com"),
+                "Contact email cannot be null");
+        String bookingEmail = Objects.requireNonNull(booking.getEmail(), "Booking email cannot be null");
+        String bookingReference = Objects.requireNonNull(booking.getBookingReference(),
+                "Booking reference cannot be null");
+        Objects.requireNonNull(pdfData, "PDF data cannot be null");
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
@@ -56,31 +72,36 @@ public class EmailService {
             // Fallback if setFrom with name fails
             helper.setFrom("noreply@klasskonsertgruppen.eu");
         }
-        helper.setTo(booking.getEmail());
+        helper.setTo(bookingEmail);
         helper.setReplyTo(contactEmail);
-        helper.setSubject("Ticket Confirmation - " + concertName + " (" + booking.getBookingReference() + ")");
+        helper.setSubject("Ticket Confirmation - " + concertName + " (" + bookingReference + ")");
 
         String htmlContent = buildPaymentConfirmedEmail(booking, concertName, concertDate, concertVenue, contactEmail);
+        Objects.requireNonNull(htmlContent, "HTML content cannot be null");
         helper.setText(htmlContent, true);
 
         // Attach PDF
-        helper.addAttachment("biljetter_" + booking.getBookingReference() + ".pdf",
+        helper.addAttachment("biljetter_" + bookingReference + ".pdf",
                 new ByteArrayResource(pdfData));
 
         mailSender.send(message);
     }
 
     public void sendAdminNotification(Booking booking) throws MessagingException {
-        String adminEmail = settingsService.getValue("admin_email", "admin@example.com");
+        String adminEmail = Objects.requireNonNull(settingsService.getValue("admin_email", "admin@example.com"),
+                "Admin email cannot be null");
+        String bookingReference = Objects.requireNonNull(booking.getBookingReference(),
+                "Booking reference cannot be null");
 
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
 
         helper.setFrom(adminEmail);
         helper.setTo(adminEmail);
-        helper.setSubject("Ny biljettreservation - " + booking.getBookingReference());
+        helper.setSubject("Ny biljettreservation - " + bookingReference);
 
         String htmlContent = buildAdminNotificationEmail(booking);
+        Objects.requireNonNull(htmlContent, "HTML content cannot be null");
         helper.setText(htmlContent, true);
 
         mailSender.send(message);
@@ -303,8 +324,13 @@ public class EmailService {
 
     public void sendContactMessage(String name, String email, String phone, String subject, String message)
             throws MessagingException {
-        String adminEmail = settingsService.getValue("admin_email", "klasskonsertgruppen@gmail.com");
-        String concertName = settingsService.getValue("concert_name", "Klasskonsert 24C");
+        String adminEmail = Objects.requireNonNull(
+                settingsService.getValue("admin_email", "klasskonsertgruppen@gmail.com"), "Admin email cannot be null");
+        String concertName = Objects.requireNonNull(settingsService.getValue("concert_name", "Klasskonsert 24C"),
+                "Concert name cannot be null");
+        Objects.requireNonNull(email, "Email cannot be null");
+        Objects.requireNonNull(subject, "Subject cannot be null");
+        Objects.requireNonNull(message, "Message cannot be null");
 
         MimeMessage mimeMessage = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, true, StandardCharsets.UTF_8.name());
@@ -344,6 +370,7 @@ public class EmailService {
                 concertName, name, email, phoneInfo, subject,
                 message.replace("\n", "<br>"), name, concertName);
 
+        Objects.requireNonNull(htmlContent, "HTML content cannot be null");
         helper.setText(htmlContent, true);
         mailSender.send(mimeMessage);
     }

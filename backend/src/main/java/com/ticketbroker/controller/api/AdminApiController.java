@@ -6,6 +6,7 @@ import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.data.domain.Page;
@@ -90,6 +91,7 @@ public class AdminApiController {
 
     @GetMapping("/bookings/{id}")
     public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long id) {
+        Objects.requireNonNull(id, "Booking ID cannot be null");
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
         return ResponseEntity.ok(BookingResponse.fromEntity(booking));
@@ -99,6 +101,7 @@ public class AdminApiController {
     public ResponseEntity<BookingResponse> updateBooking(@PathVariable Long id,
             @RequestBody Map<String, String> updates,
             @RequestParam(defaultValue = "admin") String adminUser) {
+        Objects.requireNonNull(id, "Booking ID cannot be null");
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
@@ -163,7 +166,8 @@ public class AdminApiController {
         // Note: adultTickets and studentTickets are not updated
         // as they cannot be changed after booking creation
 
-        Booking saved = bookingRepository.save(booking);
+        Booking nonNullBooking = Objects.requireNonNull(booking, "Booking cannot be null");
+        Booking saved = bookingRepository.save(nonNullBooking);
 
         // Log changes to audit log (only if there were actual changes, excluding status
         // which is logged separately)
@@ -177,6 +181,7 @@ public class AdminApiController {
     @PostMapping("/bookings/{id}/confirm-payment")
     public ResponseEntity<BookingResponse> confirmPayment(@PathVariable Long id,
             @RequestParam(defaultValue = "admin") String adminUser) {
+        Objects.requireNonNull(id, "Booking ID cannot be null");
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
@@ -195,12 +200,14 @@ public class AdminApiController {
 
     @DeleteMapping("/bookings/{id}")
     public ResponseEntity<Void> deleteBooking(@PathVariable Long id) {
+        Objects.requireNonNull(id, "Booking ID cannot be null");
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/bookings/{id}/resend-confirmation")
     public ResponseEntity<Map<String, String>> resendConfirmation(@PathVariable Long id) {
+        Objects.requireNonNull(id, "Booking ID cannot be null");
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
@@ -227,6 +234,7 @@ public class AdminApiController {
 
     @PostMapping("/bookings/{id}/resend-tickets")
     public ResponseEntity<Map<String, String>> resendTickets(@PathVariable Long id) {
+        Objects.requireNonNull(id, "Booking ID cannot be null");
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
@@ -325,6 +333,7 @@ public class AdminApiController {
     @PostMapping("/tickets/{id}/toggle-state")
     public ResponseEntity<Map<String, Object>> toggleTicketState(@PathVariable Long id,
             @RequestParam String checkerUser) {
+        Objects.requireNonNull(id, "Ticket ID cannot be null");
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
 
@@ -379,6 +388,7 @@ public class AdminApiController {
     public ResponseEntity<Void> deleteTicket(@PathVariable Long id,
             @RequestParam(defaultValue = "admin") String adminUser,
             @RequestParam(required = false) String reason) {
+        Objects.requireNonNull(id, "Ticket ID cannot be null");
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket not found"));
 
@@ -429,6 +439,7 @@ public class AdminApiController {
     @PutMapping("/shows/{id}")
     public ResponseEntity<Map<String, Object>> updateShow(@PathVariable Long id,
             @RequestBody Map<String, Object> request) {
+        Objects.requireNonNull(id, "Show ID cannot be null");
         Show show = showRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Show not found"));
 
@@ -480,6 +491,7 @@ public class AdminApiController {
 
     @DeleteMapping("/shows/{id}")
     public ResponseEntity<Void> deleteShow(@PathVariable Long id) {
+        Objects.requireNonNull(id, "Show ID cannot be null");
         Show show = showRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Show not found"));
 
