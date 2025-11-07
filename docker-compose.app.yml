@@ -36,8 +36,9 @@ services:
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}
       # Admin password
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-changeme}
+      LOG_FILE: /logs/application.log
     volumes:
-      - ./logs:/app/logs
+      - ./logs:/logs
     ports:
       - "8080:8080"
     networks:
