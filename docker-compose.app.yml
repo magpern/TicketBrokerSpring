@@ -31,6 +31,7 @@ services:
       POSTGRES_DEV_PASSWORD: ${POSTGRES_DEV_PASSWORD:-raspberry}
       # Database credentials for prod profile (if needed)
       POSTGRES_PROD_PASSWORD: ${POSTGRES_PROD_PASSWORD:-prod_password_change_me}
+      POSTGRES_DB_ADDRESS: ${POSTGRES_DB_ADDRESS:-192.168.1.151:5432}
       # Mail configuration
       MAIL_USERNAME: ${MAIL_USERNAME:-}
       MAIL_PASSWORD: ${MAIL_PASSWORD:-}

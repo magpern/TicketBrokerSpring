@@ -11,6 +11,7 @@
             "env": {
                 "POSTGRES_DEV_PASSWORD": "CHANGE_ME",
                 "POSTGRES_PROD_PASSWORD": "CHANGE_ME",
+                "LOG_FILE": "./logs/application.log",
                 "MAIL_USERNAME": "",
                 "MAIL_PASSWORD": "",
                 "ADMIN_PASSWORD": "CHANGE_ME",
