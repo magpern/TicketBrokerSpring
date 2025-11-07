@@ -2,7 +2,7 @@
 <configuration>
     <include resource="org/springframework/boot/logging/logback/defaults.xml"/>
     
-    <property name="LOG_FILE" value="${LOG_FILE:-./logs/application.log}"/>
+    <property name="LOG_FILE" value="${LOG_FILE:-/logs/application.log}"/>
     
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>

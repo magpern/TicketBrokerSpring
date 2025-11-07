@@ -24,8 +24,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget && \
 # Create non-root user
 RUN groupadd -r appuser && useradd -r -g appuser appuser
 
-# Create logs directory
-RUN mkdir -p /app/logs && chown -R appuser:appuser /app
+# Create logs directory (matching volume mount path)
+RUN mkdir -p /logs && chown -R appuser:appuser /logs && \
+    chown -R appuser:appuser /app
 
 # Copy jar from build stage
 COPY --from=build /app/target/*.jar app.jar
