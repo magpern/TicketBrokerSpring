@@ -171,6 +171,7 @@ function BookingSuccessPage() {
               <li><strong>Namn:</strong> {booking.firstName} {booking.lastName}</li>
               <li><strong>E-post:</strong> {booking.email}</li>
               <li><strong>Telefon:</strong> {booking.phone}</li>
+              <li><strong>Datum:</strong> {booking.show?.date}</li>
               <li><strong>Tid:</strong> {booking.show?.startTime}-{booking.show?.endTime}</li>
               <li><strong>Ordinariebiljetter:</strong> {booking.adultTickets} st</li>
               <li><strong>Studentbiljetter:</strong> {booking.studentTickets} st</li>

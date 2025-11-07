@@ -55,7 +55,7 @@ public class PublicApiController {
     
     @GetMapping("/shows")
     public ResponseEntity<List<ShowResponse>> getShows() {
-        List<Show> shows = showRepository.findAllByOrderByStartTimeAsc();
+        List<Show> shows = showRepository.findAllByOrderByDateAscStartTimeAsc();
         List<ShowResponse> responses = shows.stream()
                 .map(ShowResponse::fromEntity)
                 .collect(Collectors.toList());

@@ -101,6 +101,7 @@ public class EmailService {
                             <li><strong>Namn:</strong> %s</li>
                             <li><strong>E-post:</strong> %s</li>
                             <li><strong>Telefon:</strong> %s</li>
+                            <li><strong>Datum:</strong> %s</li>
                             <li><strong>Tid:</strong> %s-%s</li>
                             <li><strong>Ordinariebiljetter:</strong> %d st</li>
                             <li><strong>Studentbiljetter:</strong> %d st</li>
@@ -130,6 +131,7 @@ public class EmailService {
                 booking.getFullName(),
                 booking.getEmail(),
                 booking.getPhone(),
+                booking.getShow().getDate() != null ? booking.getShow().getDate().toString() : "",
                 booking.getShow().getStartTime(),
                 booking.getShow().getEndTime(),
                 booking.getAdultTickets(),

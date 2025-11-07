@@ -90,7 +90,7 @@ function BookingPage() {
             <div className="booking-step">
               <h2>Steg 1: Välj tid</h2>
               <div className="concert-date-info">
-                <h3>Konsertdatum: {settings.concertDate || '29/1 2026'}</h3>
+                <h3>Konsertdatum: {settings.concertDate || '2026-01-29'}</h3>
               </div>
               <form onSubmit={(e) => { e.preventDefault(); if (formData.showId) handleTimeSelection(formData.showId) }}>
                 <div className="time-selection">
@@ -134,7 +134,7 @@ function BookingPage() {
             <div className="booking-step">
               <h2>Steg 2: Välj antal biljetter</h2>
               <div className="selected-time">
-                <p><strong>Konsertdatum:</strong> {settings.concertDate || '29/1 2026'}</p>
+                <p><strong>Konsertdatum:</strong> {settings.concertDate || '2026-01-29'}</p>
                 <p><strong>Vald tid:</strong> {selectedShow.startTime}-{selectedShow.endTime}</p>
               </div>
               
@@ -231,7 +231,7 @@ function BookingPage() {
               <div className="booking-summary">
                 <h3>Din bokning:</h3>
                 <ul>
-                  <li><strong>Konsertdatum:</strong> {settings.concertDate || '29/1 2026'}</li>
+                  <li><strong>Konsertdatum:</strong> {settings.concertDate || '2026-01-29'}</li>
                   <li><strong>{settings.adultLabel || 'Ordinariebiljett'}:</strong> {formData.adultTickets} st</li>
                   <li><strong>{settings.studentLabel || 'Studentbiljett'}:</strong> {formData.studentTickets} st</li>
                   <li><strong>Totalt:</strong> {totalAmount} kr</li>

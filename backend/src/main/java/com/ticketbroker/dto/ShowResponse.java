@@ -3,12 +3,13 @@ package com.ticketbroker.dto;
 import com.ticketbroker.model.Show;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
 public class ShowResponse {
     private Long id;
-    private String date;
+    private LocalDate date;
     private String startTime;
     private String endTime;
     private Integer totalTickets;

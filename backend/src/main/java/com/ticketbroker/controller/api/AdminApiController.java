@@ -1,5 +1,8 @@
 package com.ticketbroker.controller.api;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +58,7 @@ public class AdminApiController {
     private final ExcelService excelService;
     private final SettingsService settingsService;
     private final AuditService auditService;
+    private static final DateTimeFormatter SHOW_DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
     public AdminApiController(BookingRepository bookingRepository, TicketRepository ticketRepository,
             ShowRepository showRepository, AuditLogRepository auditLogRepository,
@@ -384,11 +388,11 @@ public class AdminApiController {
 
     @GetMapping("/shows")
     public ResponseEntity<List<Map<String, Object>>> getAllShows() {
-        List<Show> shows = showRepository.findAllByOrderByStartTimeAsc();
+        List<Show> shows = showRepository.findAllByOrderByDateAscStartTimeAsc();
         List<Map<String, Object>> responses = shows.stream().map(show -> {
             Map<String, Object> map = new HashMap<>();
             map.put("id", show.getId());
-            map.put("date", show.getDate());
+            map.put("date", show.getDate() != null ? show.getDate().format(SHOW_DATE_FORMATTER) : null);
             map.put("startTime", show.getStartTime());
             map.put("endTime", show.getEndTime());
             map.put("totalTickets", show.getTotalTickets());
@@ -402,7 +406,7 @@ public class AdminApiController {
     @PostMapping("/shows")
     public ResponseEntity<Map<String, Object>> createShow(@RequestBody Map<String, Object> request) {
         Show show = new Show();
-        show.setDate((String) request.get("date"));
+        show.setDate(parseShowDate(request.get("date")));
         show.setStartTime((String) request.get("startTime"));
         show.setEndTime((String) request.get("endTime"));
         Integer totalTickets = request.get("totalTickets") != null ? ((Number) request.get("totalTickets")).intValue()
@@ -414,7 +418,7 @@ public class AdminApiController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", show.getId());
-        response.put("date", show.getDate());
+        response.put("date", show.getDate() != null ? show.getDate().format(SHOW_DATE_FORMATTER) : null);
         response.put("startTime", show.getStartTime());
         response.put("endTime", show.getEndTime());
         response.put("totalTickets", show.getTotalTickets());
@@ -466,7 +470,7 @@ public class AdminApiController {
 
         Map<String, Object> response = new HashMap<>();
         response.put("id", show.getId());
-        response.put("date", show.getDate());
+        response.put("date", show.getDate() != null ? show.getDate().format(SHOW_DATE_FORMATTER) : null);
         response.put("startTime", show.getStartTime());
         response.put("endTime", show.getEndTime());
         response.put("totalTickets", show.getTotalTickets());
@@ -730,5 +734,25 @@ public class AdminApiController {
 
         // Return updated settings
         return getSettings();
+    }
+
+    private LocalDate parseShowDate(Object dateValue) {
+        if (dateValue == null) {
+            throw new IllegalArgumentException("Datum måste anges.");
+        }
+
+        if (dateValue instanceof String) {
+            String dateStr = ((String) dateValue).trim();
+            if (dateStr.isEmpty()) {
+                throw new IllegalArgumentException("Datum måste anges.");
+            }
+            try {
+                return LocalDate.parse(dateStr, SHOW_DATE_FORMATTER);
+            } catch (DateTimeParseException ex) {
+                throw new IllegalArgumentException("Ogiltigt datumformat. Använd yyyy-MM-dd.", ex);
+            }
+        }
+
+        throw new IllegalArgumentException("Ogiltigt datumformat. Använd yyyy-MM-dd.");
     }
 }

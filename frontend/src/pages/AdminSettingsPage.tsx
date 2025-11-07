@@ -219,7 +219,7 @@ function AdminSettingsPage() {
                 <div className="form-group">
                   <label htmlFor="concertDate">Konsertdatum</label>
                   <input
-                    type="text"
+                    type="date"
                     id="concertDate"
                     value={settings.concertDate}
                     onChange={(e) => handleChange('concertDate', e.target.value)}

@@ -131,12 +131,12 @@ function AdminShowsPage() {
               <div className="form-group">
                 <label htmlFor="date">Datum</label>
                 <input
-                  type="text"
+                  type="date"
                   id="date"
                   name="date"
                   value={showForm.date}
                   onChange={(e) => setShowForm({ ...showForm, date: e.target.value })}
-                  placeholder="29/1 2026"
+                  placeholder="2026-01-29"
                   required
                 />
               </div>

@@ -71,7 +71,7 @@ function HomePage() {
             <div className="concert-info-compact">
               <div className="concert-details">
                 <h3>Konsertinformation</h3>
-                <p><strong>Datum:</strong> {settings.concertDate || '29/1 2026'}</p>
+                <p><strong>Datum:</strong> {settings.concertDate || '2026-01-29'}</p>
                 <p><strong>Plats:</strong> {settings.concertVenue || 'Aulan på Rytmus Stockholm'}</p>
                 <p><strong>Tider:</strong> {formatShowTimes()}</p>
               </div>
