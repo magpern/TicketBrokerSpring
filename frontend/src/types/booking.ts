@@ -19,6 +19,14 @@ export interface BookingRequest {
   gdprConsent: boolean
 }
 
+export interface Ticket {
+  id: number
+  ticketReference: string
+  ticketType: string
+  used: boolean
+  usedAt: string | null
+}
+
 export interface BookingResponse {
   id: number
   bookingReference: string
@@ -36,5 +44,6 @@ export interface BookingResponse {
   createdAt: string
   confirmedAt: string | null
   show: Show
+  tickets?: Ticket[] // Optional, only included when explicitly requested
 }
 

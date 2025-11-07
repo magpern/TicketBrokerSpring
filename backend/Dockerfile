@@ -13,11 +13,16 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Stage 2: Runtime
-FROM eclipse-temurin:17-jre-alpine
+# Using Debian-based image for multi-arch support (amd64 + arm64)
+FROM eclipse-temurin:17-jre
 WORKDIR /app
 
+# Install wget for health check
+RUN apt-get update && apt-get install -y --no-install-recommends wget && \
+    rm -rf /var/lib/apt/lists/*
+
 # Create non-root user
-RUN addgroup -S appuser && adduser -S appuser -G appuser
+RUN groupadd -r appuser && useradd -r -g appuser appuser
 
 # Create logs directory
 RUN mkdir -p /app/logs && chown -R appuser:appuser /app

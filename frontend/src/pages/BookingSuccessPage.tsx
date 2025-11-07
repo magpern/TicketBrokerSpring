@@ -8,10 +8,11 @@ import './BookingSuccessPage.css'
 function BookingSuccessPage() {
   const { reference, email } = useParams<{ reference: string; email: string }>()
   const [booking, setBooking] = useState<BookingResponse | null>(null)
-  const [swishUrl, setSwishUrl] = useState<string>('')
   const [qrCodeData, setQrCodeData] = useState<string>('')
   const [isMobile, setIsMobile] = useState(false)
   const [paymentInitiated, setPaymentInitiated] = useState(false)
+  const [swishRecipientName, setSwishRecipientName] = useState<string>('')
+  const [swishNumber, setSwishNumber] = useState<string>('')
 
   useEffect(() => {
     // Detect mobile device
@@ -46,13 +47,15 @@ function BookingSuccessPage() {
     if (reference && email) {
       try {
         const response = await api.post(`/public/bookings/${reference}/initiate-payment?email=${email}`)
-        setSwishUrl(response.data.swishUrl)
         setQrCodeData(response.data.qrCodeData || '')
         setPaymentInitiated(true)
         
-        // Update booking with swish recipient name if provided
-        if (response.data.swishRecipientName && booking) {
-          setBooking({ ...booking, swishRecipientName: response.data.swishRecipientName, swishNumber: response.data.swishNumber })
+        // Store swish recipient details
+        if (response.data.swishRecipientName) {
+          setSwishRecipientName(response.data.swishRecipientName)
+        }
+        if (response.data.swishNumber) {
+          setSwishNumber(response.data.swishNumber)
         }
         
         if (response.data.isMobile || isMobile) {
@@ -139,13 +142,13 @@ function BookingSuccessPage() {
                   <p className="status-initiated">✓ Swish-betalning initierad</p>
                   {isMobile ? (
                     <p className="payment-instruction">
-                      Öppna Swish-appen och betala {booking.totalAmount} kr till {booking.swishRecipientName || 'Event Organizer'} 
-                      ({booking.swishNumber || '012 345 67 89'}) med meddelandet {booking.bookingReference}
+                      Öppna Swish-appen och betala {booking.totalAmount} kr till {swishRecipientName || 'Event Organizer'} 
+                      ({swishNumber || '012 345 67 89'}) med meddelandet {booking.bookingReference}
                     </p>
                   ) : (
                     <div className="qr-code-section">
                       <p className="payment-instruction">
-                        Skanna QR-koden med din telefon för att betala {booking.totalAmount} kr till {booking.swishRecipientName || 'Event Organizer'}
+                        Skanna QR-koden med din telefon för att betala {booking.totalAmount} kr till {swishRecipientName || 'Event Organizer'}
                       </p>
                       {qrCodeData && (
                         <div className="qr-code-container">
@@ -153,7 +156,7 @@ function BookingSuccessPage() {
                         </div>
                       )}
                       <p className="qr-instruction">
-                        Eller betala manuellt till {booking.swishNumber || '012 345 67 89'} med meddelandet {booking.bookingReference}
+                        Eller betala manuellt till {swishNumber || '012 345 67 89'} med meddelandet {booking.bookingReference}
                       </p>
                     </div>
                   )}
