@@ -182,7 +182,7 @@ function AdminDashboardPage() {
   }
 
   const handleLogout = () => {
-    localStorage.removeItem('adminAuth')
+    sessionStorage.removeItem('adminAuthToken')
     navigate('/admin/login')
   }
 

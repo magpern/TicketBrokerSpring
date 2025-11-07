@@ -18,8 +18,8 @@ import './App.css'
 
 // Protected route component
 function ProtectedRoute({ children }: { children: React.ReactElement }) {
-  const auth = localStorage.getItem('adminAuth')
-  if (!auth) {
+  const authToken = sessionStorage.getItem('adminAuthToken')
+  if (!authToken) {
     return <Navigate to="/admin/login" replace />
   }
   return children

@@ -11,11 +11,10 @@ const adminApi = axios.create({
 // Add request interceptor to include basic auth
 adminApi.interceptors.request.use(
   (config) => {
-    const auth = localStorage.getItem('adminAuth')
-    if (auth) {
-      const { username, password } = JSON.parse(auth)
-      // Basic auth header
-      config.headers.Authorization = `Basic ${btoa(`${username}:${password}`)}`
+    // Retrieve base64 encoded Basic Auth token from sessionStorage
+    const authToken = sessionStorage.getItem('adminAuthToken')
+    if (authToken) {
+      config.headers.Authorization = `Basic ${authToken}`
     }
     
     // If sending FormData, remove Content-Type header to let axios set it automatically with boundary
@@ -36,7 +35,7 @@ adminApi.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401) {
       // Unauthorized - clear auth and redirect to login
-      localStorage.removeItem('adminAuth')
+      sessionStorage.removeItem('adminAuthToken')
       window.location.href = '/admin/login'
     }
     return Promise.reject(error)

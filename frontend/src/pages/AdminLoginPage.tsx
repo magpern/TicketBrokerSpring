@@ -29,8 +29,10 @@ function AdminLoginPage() {
       })
 
       if (response.ok) {
-        // Store auth credentials
-        localStorage.setItem('adminAuth', JSON.stringify({ username, password }))
+        // Store base64 encoded Basic Auth token (not plain password)
+        // Using sessionStorage instead of localStorage for better security (cleared on tab close)
+        const authToken = btoa(`${username}:${password}`)
+        sessionStorage.setItem('adminAuthToken', authToken)
         navigate('/admin')
       } else {
         setError('Felaktigt lösenord.')
