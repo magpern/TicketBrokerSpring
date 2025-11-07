@@ -78,9 +78,12 @@ public class AdminApiController {
     
     @PutMapping("/bookings/{id}")
     public ResponseEntity<BookingResponse> updateBooking(@PathVariable Long id,
-                                                        @RequestBody Map<String, String> updates) {
+                                                        @RequestBody Map<String, String> updates,
+                                                        @RequestParam(defaultValue = "admin") String adminUser) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+        
+        String oldStatus = booking.getStatus();
         
         // Update allowed fields (firstName, lastName, email, phone)
         if (updates.containsKey("firstName")) {
@@ -94,6 +97,25 @@ public class AdminApiController {
         }
         if (updates.containsKey("phone")) {
             booking.setPhone(updates.get("phone"));
+        }
+        
+        // Update payment status fields
+        if (updates.containsKey("swishPaymentInitiated")) {
+            booking.setSwishPaymentInitiated(Boolean.parseBoolean(updates.get("swishPaymentInitiated")));
+            if (Boolean.parseBoolean(updates.get("swishPaymentInitiated")) && booking.getSwishPaymentInitiatedAt() == null) {
+                booking.setSwishPaymentInitiatedAt(java.time.LocalDateTime.now());
+            }
+        }
+        if (updates.containsKey("buyerConfirmedPayment")) {
+            booking.setBuyerConfirmedPayment(Boolean.parseBoolean(updates.get("buyerConfirmedPayment")));
+        }
+        
+        // Update status if provided
+        if (updates.containsKey("status")) {
+            String newStatus = updates.get("status");
+            if (!oldStatus.equals(newStatus)) {
+                booking = bookingService.updateBookingStatus(booking, newStatus, adminUser);
+            }
         }
         
         // Note: adultTickets and studentTickets are not updated

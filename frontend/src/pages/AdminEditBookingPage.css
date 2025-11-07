@@ -22,12 +22,25 @@
 
 .form-group input[type="text"],
 .form-group input[type="email"],
-.form-group input[type="tel"] {
+.form-group input[type="tel"],
+.form-group select {
   width: 100%;
   padding: 10px;
   border: 1px solid #ddd;
   border-radius: 5px;
   font-size: 1rem;
+  font-family: inherit;
+}
+
+.form-group select {
+  background-color: white;
+  cursor: pointer;
+}
+
+.form-group select:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  opacity: 0.6;
 }
 
 .form-group input.readonly-field {
@@ -60,6 +73,40 @@
 
 .ticket-item:last-child {
   border-bottom: none;
+}
+
+.status-note {
+  display: block;
+  margin-top: 5px;
+  font-size: 0.85rem;
+}
+
+.status-warning {
+  color: #d97706;
+  font-weight: 500;
+  display: block;
+  margin-top: 5px;
+}
+
+.status-error {
+  color: #dc3545;
+  font-weight: 600;
+  display: block;
+  margin-top: 5px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: auto;
+  cursor: pointer;
+  margin: 0;
 }
 
 .status-used {

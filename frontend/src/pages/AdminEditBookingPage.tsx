@@ -18,6 +18,9 @@ function AdminEditBookingPage() {
     lastName: '',
     email: '',
     phone: '',
+    status: '',
+    swishPaymentInitiated: false,
+    buyerConfirmedPayment: false,
   })
 
   useEffect(() => {
@@ -35,6 +38,9 @@ function AdminEditBookingPage() {
         lastName: bookingData.lastName || '',
         email: bookingData.email || '',
         phone: bookingData.phone || '',
+        status: bookingData.status || 'reserved',
+        swishPaymentInitiated: bookingData.swishPaymentInitiated || false,
+        buyerConfirmedPayment: bookingData.buyerConfirmedPayment || false,
       })
     } catch (error: any) {
       if (error.response?.status === 401) {
@@ -77,10 +83,14 @@ function AdminEditBookingPage() {
     }
   }
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const target = e.target
+    const value = target.type === 'checkbox' ? (target as HTMLInputElement).checked : target.value
+    const name = target.name
+    
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     })
   }
 
@@ -173,6 +183,64 @@ function AdminEditBookingPage() {
                 onChange={handleChange}
                 required
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="status">Status</label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="status-select"
+                disabled={booking?.status === 'confirmed' && booking?.tickets && booking.tickets.some((t: any) => t.used)}
+              >
+                <option value="reserved">Reserverad</option>
+                <option value="confirmed">Bekräftad</option>
+              </select>
+              <small className="status-note">
+                {formData.status === 'confirmed' && booking?.status !== 'confirmed' && (
+                  <span className="status-warning">
+                    Varning: Att ändra till bekräftad kommer att generera biljetter.
+                  </span>
+                )}
+                {booking?.status === 'confirmed' && formData.status !== 'confirmed' && !(booking?.tickets && booking.tickets.some((t: any) => t.used)) && (
+                  <span className="status-warning">
+                    Varning: Att ändra från bekräftad kommer att radera alla biljetter för denna bokning och uppdatera tillgängliga biljetter.
+                  </span>
+                )}
+                {booking?.status === 'confirmed' && booking?.tickets && booking.tickets.some((t: any) => t.used) && (
+                  <span className="status-error">
+                    Varning: Denna bokning har använda biljetter och kan inte ändras från bekräftad.
+                  </span>
+                )}
+              </small>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="swishPaymentInitiated" className="checkbox-label">
+                <input
+                  type="checkbox"
+                  id="swishPaymentInitiated"
+                  name="swishPaymentInitiated"
+                  checked={formData.swishPaymentInitiated}
+                  onChange={handleChange}
+                />
+                Swish-betalning initierad
+              </label>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="buyerConfirmedPayment" className="checkbox-label">
+                <input
+                  type="checkbox"
+                  id="buyerConfirmedPayment"
+                  name="buyerConfirmedPayment"
+                  checked={formData.buyerConfirmedPayment}
+                  onChange={handleChange}
+                />
+                Köpare har bekräftat betalning
+              </label>
             </div>
 
             <div className="form-group">
