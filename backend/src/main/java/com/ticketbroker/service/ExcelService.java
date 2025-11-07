@@ -92,11 +92,35 @@ public class ExcelService {
                     .mapToInt(Booking::getTotalAmount)
                     .sum();
             
-            // Summary data
+            int totalAdultTickets = confirmedBookings.stream()
+                    .mapToInt(Booking::getAdultTickets)
+                    .sum();
+            int totalStudentTickets = confirmedBookings.stream()
+                    .mapToInt(Booking::getStudentTickets)
+                    .sum();
+            int totalTicketsSold = totalAdultTickets + totalStudentTickets;
+            
+            // Summary data - matching Python structure
             int rowNum = 0;
             Row row = summarySheet.createRow(rowNum++);
             row.createCell(0).setCellValue("Revenue Report");
             row.createCell(1).setCellValue("Generated: " + java.time.LocalDateTime.now().format(DATE_FORMATTER));
+            
+            rowNum++; // Empty row
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("SUMMARY");
+            
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Total Bookings:");
+            row.createCell(1).setCellValue(bookings.size());
+            
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Confirmed Bookings:");
+            row.createCell(1).setCellValue(confirmedBookings.size());
+            
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Reserved Bookings:");
+            row.createCell(1).setCellValue(reservedBookings.size());
             
             rowNum++; // Empty row
             row = summarySheet.createRow(rowNum++);
@@ -113,6 +137,57 @@ public class ExcelService {
             row = summarySheet.createRow(rowNum++);
             row.createCell(0).setCellValue("Total Potential:");
             row.createCell(1).setCellValue((totalRevenue + potentialRevenue) + " kr");
+            
+            rowNum++; // Empty row
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("TICKET BREAKDOWN");
+            
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Total Adult Tickets:");
+            row.createCell(1).setCellValue(totalAdultTickets);
+            
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Total Student Tickets:");
+            row.createCell(1).setCellValue(totalStudentTickets);
+            
+            row = summarySheet.createRow(rowNum++);
+            row.createCell(0).setCellValue("Total Tickets Sold:");
+            row.createCell(1).setCellValue(totalTicketsSold);
+            
+            // Detailed bookings sheet
+            Sheet detailsSheet = workbook.createSheet("Detailed Bookings");
+            
+            // Headers
+            rowNum = 0;
+            row = detailsSheet.createRow(rowNum++);
+            String[] detailHeaders = {"Booking Ref", "Name", "Email", "Phone", "Show Time", 
+                    "Adult Tickets", "Student Tickets", "Total Amount", "Status", 
+                    "Payment Confirmed", "Created Date"};
+            for (int i = 0; i < detailHeaders.length; i++) {
+                row.createCell(i).setCellValue(detailHeaders[i]);
+            }
+            
+            // Data
+            for (Booking booking : bookings) {
+                row = detailsSheet.createRow(rowNum++);
+                row.createCell(0).setCellValue(booking.getBookingReference());
+                row.createCell(1).setCellValue(booking.getFirstName() + " " + booking.getLastName());
+                row.createCell(2).setCellValue(booking.getEmail());
+                row.createCell(3).setCellValue(booking.getPhone());
+                row.createCell(4).setCellValue(booking.getShow().getStartTime() + "-" + booking.getShow().getEndTime());
+                row.createCell(5).setCellValue(booking.getAdultTickets());
+                row.createCell(6).setCellValue(booking.getStudentTickets());
+                row.createCell(7).setCellValue(booking.getTotalAmount());
+                row.createCell(8).setCellValue(booking.getStatus());
+                row.createCell(9).setCellValue(booking.getBuyerConfirmedPayment() ? "Yes" : "No");
+                row.createCell(10).setCellValue(booking.getCreatedAt() != null ? 
+                    booking.getCreatedAt().format(DATE_FORMATTER) : "");
+            }
+            
+            // Auto-size columns for detailed bookings
+            for (int i = 0; i < detailHeaders.length; i++) {
+                detailsSheet.autoSizeColumn(i);
+            }
             
             // Revenue by show sheet
             Sheet showSheet = workbook.createSheet("Revenue by Show");
