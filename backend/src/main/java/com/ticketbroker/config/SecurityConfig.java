@@ -45,7 +45,7 @@ public class SecurityConfig {
     
     // Filter to log authentication attempts
     private static class AuthenticationLoggingFilter extends OncePerRequestFilter {
-        private static final Logger logger = LoggerFactory.getLogger(AuthenticationLoggingFilter.class);
+        private static final Logger securityLogger = LoggerFactory.getLogger(SecurityConfig.class);
         
         @Override
         protected void doFilterInternal(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, 
@@ -60,10 +60,10 @@ public class SecurityConfig {
                     
                     if (parts.length == 2) {
                         String username = parts[0];
-                        logger.info("Admin login attempt - Username: {}, IP: {}", username, request.getRemoteAddr());
+                        securityLogger.info("Admin login attempt - Username: {}, IP: {}", username, request.getRemoteAddr());
                     }
                 } catch (Exception e) {
-                    logger.warn("Failed to parse authentication header: {}", e.getMessage());
+                    securityLogger.warn("Failed to parse authentication header: {}", e.getMessage());
                 }
             }
             
@@ -72,10 +72,10 @@ public class SecurityConfig {
             // Log authentication result
             if (request.getRequestURI().startsWith("/api/admin/")) {
                 if (response.getStatus() == 401) {
-                    logger.warn("Admin authentication failed - IP: {}, URI: {}", 
+                    securityLogger.warn("Admin authentication failed - IP: {}, URI: {}", 
                                request.getRemoteAddr(), request.getRequestURI());
                 } else if (response.getStatus() == 200 || response.getStatus() == 201) {
-                    logger.info("Admin authentication successful - IP: {}, URI: {}", 
+                    securityLogger.info("Admin authentication successful - IP: {}, URI: {}", 
                                request.getRemoteAddr(), request.getRequestURI());
                 }
             }

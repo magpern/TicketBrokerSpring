@@ -8,6 +8,8 @@ import com.ticketbroker.model.AuditLog;
 import com.ticketbroker.model.Booking;
 import com.ticketbroker.model.Ticket;
 import com.ticketbroker.repository.AuditLogRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.util.Map;
 
 @Service
 public class AuditService {
+    private static final Logger auditLogger = LoggerFactory.getLogger(AuditService.class);
     private final AuditLogRepository auditLogRepository;
     private final ObjectMapper objectMapper;
     
@@ -47,6 +50,10 @@ public class AuditService {
             auditLog.setTimestamp(LocalDateTime.now());
             
             auditLogRepository.save(auditLog);
+            
+            // Log to audit log file
+            auditLogger.info("AUDIT: action={}, entity={}, entityId={}, userType={}, userIdentifier={}, details={}, oldValue={}, newValue={}",
+                    actionType, entityType, entityId, userType, userIdentifier, details, oldValue, newValue);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("Failed to serialize audit log data", e);
         }
