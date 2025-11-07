@@ -45,7 +45,7 @@ public class Booking {
     @Column(nullable = false)
     private Integer totalAmount; // Amount in SEK
     
-    @Enumerated(EnumType.STRING)
+    @Convert(converter = BookingStatusConverter.class)
     @Column(nullable = false, length = 20)
     private BookingStatus status = BookingStatus.RESERVED;
     
