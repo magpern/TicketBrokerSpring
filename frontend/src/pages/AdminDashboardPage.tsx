@@ -17,6 +17,16 @@ function AdminDashboardPage() {
   const [filterUnconfirmed, setFilterUnconfirmed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<{ type: string; text: string } | null>(null)
+  
+  // Calculate stats
+  const stats = {
+    total: bookings.length,
+    confirmed: bookings.filter(b => b.status === 'confirmed').length,
+    pending: bookings.filter(b => b.buyerConfirmedPayment && b.status !== 'confirmed').length,
+    reserved: bookings.filter(b => !b.buyerConfirmedPayment && b.status !== 'confirmed').length,
+    totalRevenue: bookings.filter(b => b.status === 'confirmed').reduce((sum, b) => sum + (b.totalAmount || 0), 0),
+    potentialRevenue: bookings.filter(b => b.status !== 'confirmed').reduce((sum, b) => sum + (b.totalAmount || 0), 0)
+  }
 
   useEffect(() => {
     loadBookings()
@@ -197,34 +207,69 @@ function AdminDashboardPage() {
 
         <div className="admin-header">
           <h2>Administratörspanel</h2>
-          <div className="admin-actions">
-            <Link to="/admin/settings" className="btn btn-secondary">
-              Inställningar
-            </Link>
-            <Link to="/admin/shows" className="btn btn-secondary">
-              Hantera föreställningar
-            </Link>
-            <Link to="/admin/tickets" className="btn btn-secondary">
-              Biljetter
-            </Link>
-            <Link to="/admin/check-ticket" className="btn btn-primary">
-              Kontrollera biljett
-            </Link>
-            <Link to="/admin/audit" className="btn btn-secondary">
-              Auditlogg
-            </Link>
-            <button onClick={handleExportRevenue} className="btn btn-success">
-              Revenue Report
-            </button>
-            <Link to="/validate-ticket" className="btn btn-info" target="_blank">
-              🎫 Validera Biljetter
-            </Link>
-            <button onClick={handleExportExcel} className="btn btn-secondary">
-              Exportera till Excel
-            </button>
-            <button onClick={handleLogout} className="btn btn-danger">
-              Logga ut
-            </button>
+          <div className="admin-nav">
+            <div className="nav-group">
+              <Link to="/admin/check-ticket" className="nav-link nav-link-primary">
+                Kontrollera biljett
+              </Link>
+              <Link to="/admin/tickets" className="nav-link">
+                Biljetter
+              </Link>
+              <Link to="/admin/shows" className="nav-link">
+                Föreställningar
+              </Link>
+            </div>
+            <div className="nav-group">
+              <Link to="/admin/settings" className="nav-link">
+                Inställningar
+              </Link>
+              <Link to="/admin/audit" className="nav-link">
+                Auditlogg
+              </Link>
+            </div>
+            <div className="nav-group">
+              <button onClick={handleExportRevenue} className="nav-link nav-link-success">
+                Revenue Report
+              </button>
+              <button onClick={handleExportExcel} className="nav-link">
+                Excel Export
+              </button>
+              <Link to="/validate-ticket" className="nav-link nav-link-info" target="_blank">
+                🎫 Validera
+              </Link>
+            </div>
+            <div className="nav-group">
+              <button onClick={handleLogout} className="nav-link nav-link-danger">
+                Logga ut
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="admin-stats">
+          <div className="stat-card">
+            <div className="stat-label">Totalt bokningar</div>
+            <div className="stat-value">{stats.total}</div>
+          </div>
+          <div className="stat-card stat-confirmed">
+            <div className="stat-label">Bekräftade</div>
+            <div className="stat-value">{stats.confirmed}</div>
+          </div>
+          <div className="stat-card stat-pending">
+            <div className="stat-label">Väntar på bekräftelse</div>
+            <div className="stat-value">{stats.pending}</div>
+          </div>
+          <div className="stat-card stat-reserved">
+            <div className="stat-label">Reserverade</div>
+            <div className="stat-value">{stats.reserved}</div>
+          </div>
+          <div className="stat-card stat-revenue">
+            <div className="stat-label">Bekräftad intäkt</div>
+            <div className="stat-value">{stats.totalRevenue} kr</div>
+          </div>
+          <div className="stat-card stat-potential">
+            <div className="stat-label">Potentiell intäkt</div>
+            <div className="stat-value">{stats.potentialRevenue} kr</div>
           </div>
         </div>
 
