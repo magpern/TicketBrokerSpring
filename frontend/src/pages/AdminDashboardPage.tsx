@@ -275,7 +275,6 @@ function AdminDashboardPage() {
                           <th>Student</th>
                           <th>Totalt</th>
                           <th>Status</th>
-                          <th>Biljetter</th>
                           <th>Åtgärder</th>
                         </tr>
                       </thead>
@@ -307,18 +306,6 @@ function AdminDashboardPage() {
                                 <span className="status-pending">Väntar på bekräftelse</span>
                               ) : (
                                 <span className="status-reserved">Reserverad</span>
-                              )}
-                            </td>
-                            <td>
-                              {booking.tickets && booking.tickets.length > 0 ? (
-                                <Link
-                                  to={`/admin/tickets?booking=${booking.bookingReference}`}
-                                  className="ticket-count-link"
-                                >
-                                  {booking.tickets.length} biljetter
-                                </Link>
-                              ) : (
-                                <span className="no-tickets">Inga biljetter</span>
                               )}
                             </td>
                             <td className="actions">

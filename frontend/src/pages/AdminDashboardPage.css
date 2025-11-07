@@ -45,23 +45,61 @@
   background: rgba(255, 255, 255, 0.8);
   border-radius: 15px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  position: relative;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 800px;
 }
 
-th, td {
-  padding: 12px;
+th,
+td {
+  padding: 4px 12px;
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
+  vertical-align: middle;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+td {
+  height: auto;
+  display: table-cell;
 }
 
 th {
   background: rgba(220, 38, 38, 0.1);
   font-weight: 600;
   color: #dc2626;
+}
+
+/* Sticky first column (Bokning) */
+.bookings-table th:first-child,
+.bookings-table td:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 10;
+  border-right: 2px solid #e5e7eb;
+  min-width: 120px;
+}
+
+.bookings-table th:first-child {
+  background: #fee2e2;
+}
+
+.bookings-table td:first-child {
+  background: #ffffff;
+}
+
+/* Match background for status rows - fully opaque */
+tr.confirmed td:first-child {
+  background: #d1fae5;
+}
+
+tr.pending td:first-child {
+  background: #fef3c7;
 }
 
 tr.confirmed {
@@ -87,39 +125,64 @@ tr.pending {
   font-weight: 600;
 }
 
-.actions {
+td.actions {
   white-space: nowrap;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  gap: 5px;
-  align-items: center;
+  display: table-cell;
+  vertical-align: middle;
+  padding: 4px 12px;
 }
 
-.actions button {
+.actions {
+  display: inline-flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+  gap: 5px;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.actions button,
+.actions a {
   display: inline-flex;
   margin-right: 0;
+  flex-shrink: 0;
+  white-space: nowrap;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  line-height: 1.2;
+  min-height: auto !important;
+  height: auto !important;
+  align-items: center;
+  vertical-align: middle;
+  margin: 0;
 }
 
 .ticket-count-link {
   color: #dc3545;
   text-decoration: none;
   font-weight: 500;
-  padding: 4px 8px;
-  border-radius: 4px;
   transition: all 0.2s ease;
+  display: inline;
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
 .ticket-count-link:hover {
-  background-color: #dc3545;
-  color: white;
-  text-decoration: none;
+  text-decoration: underline;
+  color: #b91c1c;
+  background: transparent;
 }
 
 .no-tickets {
   color: #6c757d;
   font-style: italic;
+  background: transparent;
+  display: inline;
+  padding: 0;
+  margin: 0;
 }
 
 .bookings-header {
@@ -148,9 +211,11 @@ tr.pending {
 }
 
 .btn-small {
-  padding: 6px 12px;
-  font-size: 0.85rem;
+  padding: 4px 8px;
+  font-size: 0.75rem;
   border-radius: 4px;
+  line-height: 1.2;
+  min-height: auto;
 }
 
 .btn-warning {
@@ -211,17 +276,25 @@ tr.pending {
     font-size: 0.9rem;
   }
 
-  th, td {
+  th,
+  td {
     padding: 8px;
   }
 
   .actions {
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
-    justify-content: flex-end;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
     gap: 5px;
     align-items: center;
+    overflow-x: auto;
+  }
+
+  .actions button,
+  .actions a {
+    flex-shrink: 0;
+    white-space: nowrap;
   }
 
   .bookings-header {
@@ -229,4 +302,3 @@ tr.pending {
     align-items: stretch;
   }
 }
-

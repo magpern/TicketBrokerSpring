@@ -12,6 +12,7 @@ import AdminCheckTicketPage from './pages/AdminCheckTicketPage'
 import AdminShowsPage from './pages/AdminShowsPage'
 import AdminTicketsPage from './pages/AdminTicketsPage'
 import AdminAuditPage from './pages/AdminAuditPage'
+import AdminEditBookingPage from './pages/AdminEditBookingPage'
 import ValidateTicketPage from './pages/ValidateTicketPage'
 import './App.css'
 
@@ -81,6 +82,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <AdminAuditPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/bookings/:id/edit"
+            element={
+              <ProtectedRoute>
+                <AdminEditBookingPage />
               </ProtectedRoute>
             }
           />

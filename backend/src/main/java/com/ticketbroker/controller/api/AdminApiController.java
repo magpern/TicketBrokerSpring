@@ -69,6 +69,41 @@ public class AdminApiController {
         return ResponseEntity.ok(responses);
     }
     
+    @GetMapping("/bookings/{id}")
+    public ResponseEntity<BookingResponse> getBookingById(@PathVariable Long id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+        return ResponseEntity.ok(BookingResponse.fromEntity(booking));
+    }
+    
+    @PutMapping("/bookings/{id}")
+    public ResponseEntity<BookingResponse> updateBooking(@PathVariable Long id,
+                                                        @RequestBody Map<String, String> updates) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+        
+        // Update allowed fields (firstName, lastName, email, phone)
+        if (updates.containsKey("firstName")) {
+            booking.setFirstName(updates.get("firstName"));
+        }
+        if (updates.containsKey("lastName")) {
+            booking.setLastName(updates.get("lastName"));
+        }
+        if (updates.containsKey("email")) {
+            booking.setEmail(updates.get("email"));
+        }
+        if (updates.containsKey("phone")) {
+            booking.setPhone(updates.get("phone"));
+        }
+        
+        // Note: adultTickets and studentTickets are not updated
+        // as they cannot be changed after booking creation
+        
+        Booking saved = bookingRepository.save(booking);
+        
+        return ResponseEntity.ok(BookingResponse.fromEntity(saved));
+    }
+    
     @PostMapping("/bookings/{id}/confirm-payment")
     public ResponseEntity<BookingResponse> confirmPayment(@PathVariable Long id,
                                                           @RequestParam(defaultValue = "admin") String adminUser) {
