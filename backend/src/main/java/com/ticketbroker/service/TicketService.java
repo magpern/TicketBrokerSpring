@@ -57,7 +57,7 @@ public class TicketService {
     
     @Transactional
     public List<Ticket> generateTicketsForBooking(Booking booking) {
-        if (!"confirmed".equals(booking.getStatus())) {
+        if (booking.getStatus() != com.ticketbroker.model.BookingStatus.CONFIRMED) {
             throw new IllegalArgumentException("Can only generate tickets for confirmed bookings");
         }
         

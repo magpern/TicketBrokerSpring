@@ -35,7 +35,7 @@ public class BookingResponse {
         response.setAdultTickets(booking.getAdultTickets());
         response.setStudentTickets(booking.getStudentTickets());
         response.setTotalAmount(booking.getTotalAmount());
-        response.setStatus(booking.getStatus());
+        response.setStatus(booking.getStatus() != null ? booking.getStatus().name().toLowerCase() : null);
         response.setBuyerConfirmedPayment(booking.getBuyerConfirmedPayment());
         response.setSwishPaymentInitiated(booking.getSwishPaymentInitiated());
         response.setSwishPaymentInitiatedAt(booking.getSwishPaymentInitiatedAt());

@@ -45,8 +45,9 @@ public class Booking {
     @Column(nullable = false)
     private Integer totalAmount; // Amount in SEK
     
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status = "reserved"; // 'reserved' or 'confirmed'
+    private BookingStatus status = BookingStatus.RESERVED;
     
     @Column(nullable = false)
     private Boolean buyerConfirmedPayment = false;

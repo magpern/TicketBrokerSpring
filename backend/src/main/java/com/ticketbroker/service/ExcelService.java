@@ -54,7 +54,7 @@ public class ExcelService {
                 row.createCell(7).setCellValue(booking.getAdultTickets());
                 row.createCell(8).setCellValue(booking.getStudentTickets());
                 row.createCell(9).setCellValue(booking.getTotalAmount());
-                row.createCell(10).setCellValue(booking.getStatus());
+                row.createCell(10).setCellValue(booking.getStatus() != null ? booking.getStatus().name().toLowerCase() : "");
                 row.createCell(11).setCellValue(booking.getCreatedAt() != null ? 
                     booking.getCreatedAt().format(DATE_FORMATTER) : "");
                 row.createCell(12).setCellValue(booking.getConfirmedAt() != null ? 
@@ -79,10 +79,10 @@ public class ExcelService {
             
             // Calculate totals
             List<Booking> confirmedBookings = bookings.stream()
-                    .filter(b -> "confirmed".equals(b.getStatus()))
+                    .filter(b -> b.getStatus() == com.ticketbroker.model.BookingStatus.CONFIRMED)
                     .toList();
             List<Booking> reservedBookings = bookings.stream()
-                    .filter(b -> !"confirmed".equals(b.getStatus()))
+                    .filter(b -> b.getStatus() != com.ticketbroker.model.BookingStatus.CONFIRMED)
                     .toList();
             
             int totalRevenue = confirmedBookings.stream()
@@ -178,7 +178,7 @@ public class ExcelService {
                 row.createCell(5).setCellValue(booking.getAdultTickets());
                 row.createCell(6).setCellValue(booking.getStudentTickets());
                 row.createCell(7).setCellValue(booking.getTotalAmount());
-                row.createCell(8).setCellValue(booking.getStatus());
+                row.createCell(8).setCellValue(booking.getStatus() != null ? booking.getStatus().name().toLowerCase() : "");
                 row.createCell(9).setCellValue(booking.getBuyerConfirmedPayment() ? "Yes" : "No");
                 row.createCell(10).setCellValue(booking.getCreatedAt() != null ? 
                     booking.getCreatedAt().format(DATE_FORMATTER) : "");
@@ -204,7 +204,7 @@ public class ExcelService {
                 data.putIfAbsent("reservedBookings", 0);
                 data.putIfAbsent("totalTickets", 0);
                 
-                if ("confirmed".equals(booking.getStatus())) {
+                if (booking.getStatus() == com.ticketbroker.model.BookingStatus.CONFIRMED) {
                     data.put("confirmedRevenue", (Integer) data.get("confirmedRevenue") + booking.getTotalAmount());
                     data.put("confirmedBookings", (Integer) data.get("confirmedBookings") + 1);
                 } else {

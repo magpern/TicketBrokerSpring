@@ -202,12 +202,12 @@ public class PublicApiController {
         }
         
         // Check if booking is confirmed
-        if (!"confirmed".equals(ticket.getBooking().getStatus())) {
+        if (ticket.getBooking().getStatus() != com.ticketbroker.model.BookingStatus.CONFIRMED) {
             response.put("valid", false);
             response.put("message", "Biljett inte bekräftad");
             response.put("status", "unconfirmed");
             response.put("ticketReference", ticket.getTicketReference());
-            response.put("bookingStatus", ticket.getBooking().getStatus());
+            response.put("bookingStatus", ticket.getBooking().getStatus() != null ? ticket.getBooking().getStatus().name().toLowerCase() : null);
             return ResponseEntity.ok(response);
         }
         
@@ -310,7 +310,7 @@ public class PublicApiController {
             // Find all confirmed bookings with tickets for this email
             List<Booking> allBookings = bookingService.getBookingsByEmail(email.toLowerCase());
             List<Booking> confirmedBookings = allBookings.stream()
-                    .filter(b -> "confirmed".equals(b.getStatus()) && b.getTickets() != null && !b.getTickets().isEmpty())
+                    .filter(b -> b.getStatus() == com.ticketbroker.model.BookingStatus.CONFIRMED && b.getTickets() != null && !b.getTickets().isEmpty())
                     .collect(Collectors.toList());
             
             if (confirmedBookings.isEmpty()) {

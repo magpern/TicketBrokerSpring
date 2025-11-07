@@ -39,7 +39,6 @@ public class EmailService {
     }
     
     public void sendPaymentConfirmed(Booking booking, byte[] pdfData) throws MessagingException {
-        String adminEmail = settingsService.getValue("admin_email", "klasskonsertgruppen@gmail.com");
         String concertName = settingsService.getValue("concert_name", "Klasskonsert 24C");
         String concertDate = settingsService.getValue("concert_date", "29/1 2026");
         String concertVenue = settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm");
@@ -48,7 +47,8 @@ public class EmailService {
         MimeMessage message = mailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
         
-        helper.setFrom(adminEmail);
+        // Use noreply address for ticket emails
+        helper.setFrom("noreply@klasskonsertgruppen.eu");
         helper.setTo(booking.getEmail());
         helper.setSubject("Ticket Confirmation - " + concertName + " (" + booking.getBookingReference() + ")");
         

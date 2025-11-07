@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.ticketbroker.model.Booking;
+import com.ticketbroker.model.BookingStatus;
 import com.ticketbroker.model.Show;
 import com.ticketbroker.repository.BookingRepository;
 import com.ticketbroker.repository.ShowRepository;
@@ -47,7 +48,7 @@ public class BookingService {
 
         // Generate booking reference
         booking.setBookingReference(bookingReferenceGenerator.generateUniqueReference());
-        booking.setStatus("reserved");
+        booking.setStatus(BookingStatus.RESERVED);
         booking.setCreatedAt(LocalDateTime.now());
         booking.setShow(show);
 
@@ -75,7 +76,7 @@ public class BookingService {
         return bookingRepository.findByShowId(showId);
     }
 
-    public List<Booking> getBookingsByStatus(String status) {
+    public List<Booking> getBookingsByStatus(BookingStatus status) {
         return bookingRepository.findByStatus(status);
     }
 
@@ -106,7 +107,7 @@ public class BookingService {
 
     @Transactional
     public Booking confirmPaymentByAdmin(Booking booking, String adminUser) {
-        booking.setStatus("confirmed");
+        booking.setStatus(BookingStatus.CONFIRMED);
         booking.setConfirmedAt(LocalDateTime.now());
         Booking saved = bookingRepository.save(booking);
 
@@ -137,11 +138,11 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking updateBookingStatus(Booking booking, String newStatus, String adminUser) {
-        String oldStatus = booking.getStatus();
+    public Booking updateBookingStatus(Booking booking, BookingStatus newStatus, String adminUser) {
+        BookingStatus oldStatus = booking.getStatus();
 
         // If changing from confirmed to something else
-        if ("confirmed".equals(oldStatus) && !"confirmed".equals(newStatus)) {
+        if (oldStatus == BookingStatus.CONFIRMED && newStatus != BookingStatus.CONFIRMED) {
             // Check if any tickets are used
             List<com.ticketbroker.model.Ticket> tickets = ticketService.getTicketsForBooking(booking);
             boolean hasUsedTickets = tickets.stream().anyMatch(com.ticketbroker.model.Ticket::getIsUsed);
@@ -154,7 +155,7 @@ public class BookingService {
             for (com.ticketbroker.model.Ticket ticket : tickets) {
                 ticketRepository.delete(ticket);
                 auditService.logTicketDeleted(ticket, adminUser,
-                        "Booking status changed from confirmed to " + newStatus);
+                        "Booking status changed from confirmed to " + newStatus.name());
             }
 
             // Update show availability
@@ -162,7 +163,7 @@ public class BookingService {
         }
 
         // If changing to confirmed
-        if (!"confirmed".equals(oldStatus) && "confirmed".equals(newStatus)) {
+        if (oldStatus != BookingStatus.CONFIRMED && newStatus == BookingStatus.CONFIRMED) {
             booking.setConfirmedAt(LocalDateTime.now());
             // Generate tickets
             ticketService.generateTicketsForBooking(booking);

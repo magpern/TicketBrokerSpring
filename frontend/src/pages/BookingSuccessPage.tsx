@@ -165,20 +165,18 @@ function BookingSuccessPage() {
             </div>
           </div>
           
-          {!isPending && (
-            <div className="booking-details">
-              <h3>Din bokning:</h3>
-              <ul>
-                <li><strong>Namn:</strong> {booking.firstName} {booking.lastName}</li>
-                <li><strong>E-post:</strong> {booking.email}</li>
-                <li><strong>Telefon:</strong> {booking.phone}</li>
-                <li><strong>Tid:</strong> {booking.show?.startTime}-{booking.show?.endTime}</li>
-                <li><strong>Ordinariebiljetter:</strong> {booking.adultTickets} st</li>
-                <li><strong>Studentbiljetter:</strong> {booking.studentTickets} st</li>
-                <li><strong>Totalt att betala:</strong> {booking.totalAmount} kr</li>
-              </ul>
-            </div>
-          )}
+          <div className="booking-details">
+            <h3>Din bokning:</h3>
+            <ul>
+              <li><strong>Namn:</strong> {booking.firstName} {booking.lastName}</li>
+              <li><strong>E-post:</strong> {booking.email}</li>
+              <li><strong>Telefon:</strong> {booking.phone}</li>
+              <li><strong>Tid:</strong> {booking.show?.startTime}-{booking.show?.endTime}</li>
+              <li><strong>Ordinariebiljetter:</strong> {booking.adultTickets} st</li>
+              <li><strong>Studentbiljetter:</strong> {booking.studentTickets} st</li>
+              <li><strong>Totalt att betala:</strong> {booking.totalAmount} kr</li>
+            </ul>
+          </div>
           
           {isConfirmed && (
             <div className="payment-status">
@@ -195,6 +193,12 @@ function BookingSuccessPage() {
                   </ul>
                 </div>
               )}
+            </div>
+          )}
+          
+          {isPending && (
+            <div className="payment-status">
+              <p className="status-pending">✓ Betalning bekräftad av dig. Väntar på administratörens godkännande.</p>
             </div>
           )}
           

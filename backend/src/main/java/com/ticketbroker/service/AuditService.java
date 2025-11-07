@@ -134,6 +134,34 @@ public class AuditService {
                 "buyer", booking.getPhone(), details, null, null);
     }
     
+    public void logBookingUpdated(Booking booking, Map<String, Object> changedFields, String adminUser) {
+        Map<String, Object> details = new HashMap<>();
+        details.put("bookingReference", booking.getBookingReference());
+        
+        Map<String, Object> oldValue = new HashMap<>();
+        Map<String, Object> newValue = new HashMap<>();
+        
+        // Track all changed fields
+        for (Map.Entry<String, Object> entry : changedFields.entrySet()) {
+            String field = entry.getKey();
+            Object value = entry.getValue();
+            
+            // Store old and new values
+            if (value instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> valueMap = (Map<String, Object>) value;
+                oldValue.put(field, valueMap.get("old"));
+                newValue.put(field, valueMap.get("new"));
+            } else {
+                newValue.put(field, value);
+            }
+        }
+        
+        logAuditEvent("booking_updated", "booking", booking.getId(),
+                "admin", adminUser, details, oldValue.isEmpty() ? null : oldValue, 
+                newValue.isEmpty() ? null : newValue);
+    }
+    
     public Page<AuditLog> getAuditLogs(Pageable pageable) {
         return auditLogRepository.findAllByOrderByTimestampDesc(pageable);
     }
