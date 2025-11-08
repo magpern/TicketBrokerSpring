@@ -18,10 +18,8 @@ services:
     environment:
       # Spring Profile - set to 'dev' for testing (or 'prod' if testing production)
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      # Database credentials for dev profile
-      POSTGRES_DEV_PASSWORD: ${POSTGRES_DEV_PASSWORD:-raspberry}
-      # Database credentials for prod profile (if testing prod)
-      POSTGRES_PROD_PASSWORD: ${POSTGRES_PROD_PASSWORD:-prod_password_change_me}
+      # Database credentials (single database with separate schemas for dev/prod)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
 
   ticketbroker-frontend:
     # Test: pull from registry (no build)

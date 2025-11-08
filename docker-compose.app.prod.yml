@@ -18,8 +18,8 @@ services:
     environment:
       # Spring Profile - set to 'prod' for production
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-prod}
-      # Database credentials for prod profile
-      POSTGRES_PROD_PASSWORD: ${POSTGRES_PROD_PASSWORD:-prod_password_change_me}
+      # Database credentials (single database with separate schemas for dev/prod)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
 
   ticketbroker-frontend:
     # Production: pull from registry (no build)

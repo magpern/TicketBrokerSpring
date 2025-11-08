@@ -27,10 +27,8 @@ services:
     environment:
       # Spring Profile - set to 'dev' for development
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      # Database credentials for dev profile
-      POSTGRES_DEV_PASSWORD: ${POSTGRES_DEV_PASSWORD:-raspberry}
-      # Database credentials for prod profile (if needed)
-      POSTGRES_PROD_PASSWORD: ${POSTGRES_PROD_PASSWORD:-prod_password_change_me}
+      # Database credentials (single database with separate schemas for dev/prod)
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
       POSTGRES_DB_ADDRESS: ${POSTGRES_DB_ADDRESS:-192.168.1.151:5432}
       # Mail configuration
       MAIL_USERNAME: ${MAIL_USERNAME:-}
