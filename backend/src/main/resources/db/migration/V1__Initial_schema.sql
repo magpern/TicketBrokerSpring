@@ -1,7 +1,10 @@
--- Create shows table
+-- Initial schema for TicketBroker application
+-- Consolidated migration: includes all tables with final structure
+
+-- Create shows table (date is DATE type, not VARCHAR)
 CREATE TABLE shows (
     id BIGSERIAL PRIMARY KEY,
-    date VARCHAR(50) NOT NULL,
+    date DATE NOT NULL,
     start_time VARCHAR(10) NOT NULL,
     end_time VARCHAR(10) NOT NULL,
     total_tickets INTEGER NOT NULL DEFAULT 100,
@@ -56,20 +59,6 @@ CREATE TABLE tickets (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create audit_logs table
-CREATE TABLE audit_logs (
-    id BIGSERIAL PRIMARY KEY,
-    timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    action_type VARCHAR(50) NOT NULL,
-    entity_type VARCHAR(20) NOT NULL,
-    entity_id BIGINT NOT NULL,
-    user_type VARCHAR(20) NOT NULL,
-    user_identifier VARCHAR(50) NOT NULL,
-    details TEXT,
-    old_value TEXT,
-    new_value TEXT
-);
-
 -- Create settings table
 CREATE TABLE settings (
     id BIGSERIAL PRIMARY KEY,
@@ -85,6 +74,3 @@ CREATE INDEX idx_bookings_email ON bookings(email);
 CREATE INDEX idx_tickets_booking_id ON tickets(booking_id);
 CREATE INDEX idx_tickets_show_id ON tickets(show_id);
 CREATE INDEX idx_tickets_reference ON tickets(ticket_reference);
-CREATE INDEX idx_audit_logs_entity ON audit_logs(entity_type, entity_id);
-CREATE INDEX idx_audit_logs_timestamp ON audit_logs(timestamp DESC);
-
