@@ -20,7 +20,7 @@ export function canAddTicket(
   currentAdult: number,
   currentStudent: number,
   maxTickets: number,
-  type: 'adult' | 'student'
+  _type: 'adult' | 'student'
 ): boolean {
   const total = currentAdult + currentStudent
   return total < maxTickets
