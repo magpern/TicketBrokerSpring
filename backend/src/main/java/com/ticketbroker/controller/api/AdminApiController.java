@@ -9,9 +9,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -32,7 +29,6 @@ import com.ticketbroker.model.Booking;
 import com.ticketbroker.model.BookingStatus;
 import com.ticketbroker.model.Show;
 import com.ticketbroker.model.Ticket;
-import com.ticketbroker.repository.AuditLogRepository;
 import com.ticketbroker.repository.BookingRepository;
 import com.ticketbroker.repository.ShowRepository;
 import com.ticketbroker.repository.TicketRepository;
@@ -51,7 +47,6 @@ public class AdminApiController {
     private final BookingRepository bookingRepository;
     private final TicketRepository ticketRepository;
     private final ShowRepository showRepository;
-    private final AuditLogRepository auditLogRepository;
     private final BookingService bookingService;
     private final TicketService ticketService;
     private final EmailService emailService;
@@ -62,7 +57,7 @@ public class AdminApiController {
     private static final DateTimeFormatter SHOW_DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
     public AdminApiController(BookingRepository bookingRepository, TicketRepository ticketRepository,
-            ShowRepository showRepository, AuditLogRepository auditLogRepository,
+            ShowRepository showRepository,
             BookingService bookingService, TicketService ticketService,
             EmailService emailService, PdfService pdfService,
             ExcelService excelService, SettingsService settingsService,
@@ -70,7 +65,6 @@ public class AdminApiController {
         this.bookingRepository = bookingRepository;
         this.ticketRepository = ticketRepository;
         this.showRepository = showRepository;
-        this.auditLogRepository = auditLogRepository;
         this.bookingService = bookingService;
         this.ticketService = ticketService;
         this.emailService = emailService;
@@ -540,66 +534,6 @@ public class AdminApiController {
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
         }
-    }
-
-    @GetMapping("/audit")
-    public ResponseEntity<Map<String, Object>> getAuditLogs(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "50") int size,
-            @RequestParam(required = false) String action,
-            @RequestParam(required = false) String entity,
-            @RequestParam(required = false) String user) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<com.ticketbroker.model.AuditLog> logs;
-
-        // Apply filters
-        if (action != null && !action.isEmpty() && entity != null && !entity.isEmpty()) {
-            logs = auditLogRepository.findByActionTypeAndEntityTypeOrderByTimestampDesc(action, entity, pageable);
-        } else if (action != null && !action.isEmpty()) {
-            logs = auditLogRepository.findByActionTypeOrderByTimestampDesc(action, pageable);
-        } else if (entity != null && !entity.isEmpty()) {
-            logs = auditLogRepository.findByEntityTypeOrderByTimestampDesc(entity, pageable);
-        } else if (user != null && !user.isEmpty()) {
-            logs = auditLogRepository.findByUserIdentifierOrderByTimestampDesc(user, pageable);
-        } else {
-            logs = auditLogRepository.findAllByOrderByTimestampDesc(pageable);
-        }
-
-        Page<Map<String, Object>> responses = logs.map(log -> {
-            Map<String, Object> map = new HashMap<>();
-            map.put("id", log.getId());
-            map.put("timestamp", log.getTimestamp());
-            map.put("actionType", log.getActionType());
-            map.put("entityType", log.getEntityType());
-            map.put("entityId", log.getEntityId());
-            map.put("userType", log.getUserType());
-            map.put("userIdentifier", log.getUserIdentifier());
-            map.put("details", log.getDetails());
-            map.put("oldValue", log.getOldValue());
-            map.put("newValue", log.getNewValue());
-            return map;
-        });
-
-        // Get unique values for filters
-        List<String> actions = auditLogRepository.findDistinctActionTypes();
-        List<String> entities = auditLogRepository.findDistinctEntityTypes();
-        List<String> users = auditLogRepository.findDistinctUserIdentifiers();
-
-        Map<String, Object> result = new HashMap<>();
-        result.put("content", responses.getContent());
-        result.put("totalElements", responses.getTotalElements());
-        result.put("totalPages", responses.getTotalPages());
-        result.put("number", responses.getNumber());
-        result.put("size", responses.getSize());
-        result.put("first", responses.isFirst());
-        result.put("last", responses.isLast());
-        result.put("hasNext", responses.hasNext());
-        result.put("hasPrevious", responses.hasPrevious());
-        result.put("actions", actions);
-        result.put("entities", entities);
-        result.put("users", users);
-
-        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/settings")

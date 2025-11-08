@@ -4,58 +4,42 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.fasterxml.jackson.databind.SerializationFeature;
-import com.ticketbroker.model.AuditLog;
 import com.ticketbroker.model.Booking;
 import com.ticketbroker.model.Ticket;
-import com.ticketbroker.repository.AuditLogRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class AuditService {
     private static final Logger auditLogger = LoggerFactory.getLogger(AuditService.class);
-    private final AuditLogRepository auditLogRepository;
     private final ObjectMapper objectMapper;
     
-    public AuditService(AuditLogRepository auditLogRepository) {
-        this.auditLogRepository = auditLogRepository;
+    public AuditService() {
         this.objectMapper = new ObjectMapper();
         this.objectMapper.registerModule(new JavaTimeModule());
         this.objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
     
-    @Transactional
     public void logAuditEvent(String actionType, String entityType, Long entityId,
                              String userType, String userIdentifier,
                              Map<String, Object> details, Map<String, Object> oldValue,
                              Map<String, Object> newValue) {
         try {
-            AuditLog auditLog = new AuditLog();
-            auditLog.setActionType(actionType);
-            auditLog.setEntityType(entityType);
-            auditLog.setEntityId(entityId);
-            auditLog.setUserType(userType);
-            auditLog.setUserIdentifier(userIdentifier);
-            auditLog.setDetails(details != null ? objectMapper.writeValueAsString(details) : null);
-            auditLog.setOldValue(oldValue != null ? objectMapper.writeValueAsString(oldValue) : null);
-            auditLog.setNewValue(newValue != null ? objectMapper.writeValueAsString(newValue) : null);
-            auditLog.setTimestamp(LocalDateTime.now());
+            // Log to audit log file (Promtail will pick this up and send to Loki)
+            String detailsJson = details != null ? objectMapper.writeValueAsString(details) : null;
+            String oldValueJson = oldValue != null ? objectMapper.writeValueAsString(oldValue) : null;
+            String newValueJson = newValue != null ? objectMapper.writeValueAsString(newValue) : null;
             
-            auditLogRepository.save(auditLog);
-            
-            // Log to audit log file
             auditLogger.info("AUDIT: action={}, entity={}, entityId={}, userType={}, userIdentifier={}, details={}, oldValue={}, newValue={}",
-                    actionType, entityType, entityId, userType, userIdentifier, details, oldValue, newValue);
+                    actionType, entityType, entityId, userType, userIdentifier, detailsJson, oldValueJson, newValueJson);
         } catch (JsonProcessingException e) {
-            throw new RuntimeException("Failed to serialize audit log data", e);
+            // If JSON serialization fails, log without JSON formatting
+            auditLogger.warn("AUDIT: action={}, entity={}, entityId={}, userType={}, userIdentifier={} (JSON serialization failed: {})",
+                    actionType, entityType, entityId, userType, userIdentifier, e.getMessage());
         }
     }
     
@@ -169,8 +153,5 @@ public class AuditService {
                 newValue.isEmpty() ? null : newValue);
     }
     
-    public Page<AuditLog> getAuditLogs(Pageable pageable) {
-        return auditLogRepository.findAllByOrderByTimestampDesc(pageable);
-    }
 }
 

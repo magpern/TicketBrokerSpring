@@ -223,9 +223,6 @@ function AdminDashboardPage() {
               <Link to="/admin/settings" className="nav-link">
                 Inställningar
               </Link>
-              <Link to="/admin/audit" className="nav-link">
-                Auditlogg
-              </Link>
             </div>
             <div className="nav-group">
               <button onClick={handleExportRevenue} className="nav-link nav-link-success">
