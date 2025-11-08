@@ -1,0 +1,145 @@
+{
+    "uid": "ticketbroker-logs",
+    "title": "Ticketbroker • Logs (Loki)",
+    "tags": ["loki", "observability", "ticketbroker"],
+    "timezone": "",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "10s",
+    "time": { "from": "now-24h", "to": "now" },
+    "templating": {
+      "list": [
+        {
+          "name": "datasource",
+          "type": "datasource",
+          "query": "loki",
+          "current": {},
+          "label": "Datasource"
+        },
+        {
+          "name": "job",
+          "type": "query",
+          "datasource": { "type": "loki", "uid": "$datasource" },
+          "query": "label_values({job!=\"\"}, job)",
+          "refresh": 2,
+          "label": "Job",
+          "current": { "text": "ticketbroker", "value": "ticketbroker" }
+        },
+        {
+          "name": "environment",
+          "type": "query",
+          "datasource": { "type": "loki", "uid": "$datasource" },
+          "query": "label_values({job=\"$job\"}, environment)",
+          "refresh": 2,
+          "label": "Environment",
+          "includeAll": true,
+          "allValue": ".+",
+          "current": { "text": "dev", "value": "dev" }
+        },
+        {
+          "name": "log_type",
+          "type": "query",
+          "datasource": { "type": "loki", "uid": "$datasource" },
+          "query": "label_values({job=\"$job\", environment=\"$environment\"}, log_type)",
+          "includeAll": true,
+          "allValue": ".+",
+          "multi": true,
+          "refresh": 2,
+          "label": "Log Type"
+        },
+        {
+          "name": "level",
+          "type": "custom",
+          "label": "Level",
+          "query": "TRACE,DEBUG,INFO,WARN,ERROR",
+          "includeAll": true,
+          "multi": true,
+          "current": { "text": "INFO,WARN,ERROR", "value": ["INFO","WARN","ERROR"] }
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Log Volume by Type",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+        "datasource": { "type": "loki", "uid": "$datasource" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (log_type) (count_over_time({job=\"$job\", environment=\"$environment\", log_type=~\"$log_type\"}[$__interval]))"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Error Rate by Type",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+        "datasource": { "type": "loki", "uid": "$datasource" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (log_type) (count_over_time({job=\"$job\", environment=\"$environment\", log_type=~\"$log_type\", level=\"ERROR\"}[$__interval]))"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Top Noisy Loggers (rate)",
+        "type": "bargauge",
+        "gridPos": { "h": 8, "w": 8, "x": 0, "y": 8 },
+        "datasource": { "type": "loki", "uid": "$datasource" },
+        "options": { "displayMode": "lcd", "orientation": "horizontal", "reduceOptions": { "calcs": ["lastNotNull"], "values": false } },
+        "targets": [
+         {
+           "refId": "A",
+           "expr": "topk(10, sum by (logger) (rate(({job=\"$job\", environment=\"$environment\", log_type=~\"$log_type\"} |= \"\")[$__interval])))"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Bytes Ingested by Type",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 8, "x": 8, "y": 8 },
+        "datasource": { "type": "loki", "uid": "$datasource" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "sum by (log_type) (bytes_over_time({job=\"$job\", environment=\"$environment\", log_type=~\"$log_type\"}[$__interval]))"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "Recent Errors",
+        "type": "logs",
+        "gridPos": { "h": 16, "w": 16, "x": 0, "y": 16 },
+        "datasource": { "type": "loki", "uid": "$datasource" },
+        "options": { "showTime": true, "wrapLogMessage": true, "dedupStrategy": "none" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "{job=\"$job\", environment=\"$environment\", log_type=~\"$log_type\", level=\"ERROR\"}"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "Live Logs (filter by level)",
+        "type": "logs",
+        "gridPos": { "h": 16, "w": 8, "x": 16, "y": 16 },
+        "datasource": { "type": "loki", "uid": "$datasource" },
+        "options": { "showTime": true, "wrapLogMessage": true, "dedupStrategy": "none" },
+        "targets": [
+          {
+            "refId": "A",
+            "expr": "{job=\"$job\", environment=\"$environment\", log_type=~\"$log_type\", level=~\"$level\"}"
+          }
+        ]
+      }
+    ]
+  }
+  
