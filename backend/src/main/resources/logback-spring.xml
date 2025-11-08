@@ -4,6 +4,13 @@
     
     <property name="LOG_DIR" value="${LOG_DIR:-/logs}"/>
     
+    <!-- Individual log file paths (can be overridden via environment variables) -->
+    <property name="APPLICATION_LOG_FILE" value="${APPLICATION_LOG_FILE:-${LOG_DIR}/application.log}"/>
+    <property name="PAYLOAD_LOG_FILE" value="${PAYLOAD_LOG_FILE:-${LOG_DIR}/payload.log}"/>
+    <property name="AUDIT_LOG_FILE" value="${AUDIT_LOG_FILE:-${LOG_DIR}/audit.log}"/>
+    <property name="SECURITY_LOG_FILE" value="${SECURITY_LOG_FILE:-${LOG_DIR}/security.log}"/>
+    <property name="ERROR_LOG_FILE" value="${ERROR_LOG_FILE:-${LOG_DIR}/error.log}"/>
+    
     <!-- Console Appender -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
@@ -13,13 +20,13 @@
     
     <!-- Application Log Appender -->
     <appender name="APPLICATION_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/application.log</file>
+        <file>${APPLICATION_LOG_FILE}</file>
         <prudent>false</prudent>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} - %-5level - %logger{36} - %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/application.log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${APPLICATION_LOG_FILE}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>10MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
@@ -29,13 +36,13 @@
     
     <!-- Payload Log Appender -->
     <appender name="PAYLOAD_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/payload.log</file>
+        <file>${PAYLOAD_LOG_FILE}</file>
         <prudent>false</prudent>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/payload.log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${PAYLOAD_LOG_FILE}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>50MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
@@ -45,13 +52,13 @@
     
     <!-- Audit Log Appender -->
     <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/audit.log</file>
+        <file>${AUDIT_LOG_FILE}</file>
         <prudent>false</prudent>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/audit.log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${AUDIT_LOG_FILE}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>10MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
@@ -61,13 +68,13 @@
     
     <!-- Security Log Appender -->
     <appender name="SECURITY_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/security.log</file>
+        <file>${SECURITY_LOG_FILE}</file>
         <prudent>false</prudent>
         <encoder>
             <pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/security.log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${SECURITY_LOG_FILE}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>10MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
@@ -77,7 +84,7 @@
     
     <!-- Error Log Appender -->
     <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
-        <file>${LOG_DIR}/error.log</file>
+        <file>${ERROR_LOG_FILE}</file>
         <prudent>false</prudent>
         <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
             <level>ERROR</level>
@@ -86,7 +93,7 @@
             <pattern>%d{yyyy-MM-dd HH:mm:ss} - %-5level - %logger{36} - %msg%n%ex</pattern>
         </encoder>
         <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_DIR}/error.log.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <fileNamePattern>${ERROR_LOG_FILE}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
             <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
                 <maxFileSize>10MB</maxFileSize>
             </timeBasedFileNamingAndTriggeringPolicy>
