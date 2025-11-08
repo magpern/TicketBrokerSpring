@@ -75,3 +75,4 @@ tmp/
 *.bak
 *.backup
 backup/
+database-connection-prod.json
