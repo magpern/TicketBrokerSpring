@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
+import { BackendStatusProvider } from './contexts/BackendStatusContext'
 import HomePage from './pages/HomePage'
 import BookingPage from './pages/BookingPage'
 import BookingSuccessPage from './pages/BookingSuccessPage'
@@ -26,9 +27,10 @@ function ProtectedRoute({ children }: { children: React.ReactElement }) {
 
 function App() {
   return (
-    <Router>
-      <div className="App">
-        <Routes>
+    <BackendStatusProvider>
+      <Router>
+        <div className="App">
+          <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/booking" element={<BookingPage />} />
           <Route path="/booking/success/:reference/:email" element={<BookingSuccessPage />} />
@@ -85,9 +87,10 @@ function App() {
             }
           />
           <Route path="/validate-ticket" element={<ValidateTicketPage />} />
-        </Routes>
-      </div>
-    </Router>
+          </Routes>
+        </div>
+      </Router>
+    </BackendStatusProvider>
   )
 }
 

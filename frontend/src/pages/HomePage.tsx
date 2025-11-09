@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Layout from '../components/Layout'
+import { useBackendStatus } from '../contexts/BackendStatusContext'
 import api from '../services/api'
 import { Show } from '../types/booking'
 import './HomePage.css'
@@ -18,6 +19,7 @@ interface Settings {
 }
 
 function HomePage() {
+  const { isOnline } = useBackendStatus()
   const [shows, setShows] = useState<Show[]>([])
   const [settings, setSettings] = useState<Settings>({})
   const [classPhotoUrl, setClassPhotoUrl] = useState<string>('')
@@ -30,9 +32,17 @@ function HomePage() {
   } | null>(null)
 
   useEffect(() => {
+    // Only fetch data if backend is online
+    if (!isOnline) {
+      return
+    }
+
     api.get('/public/shows').then((response) => {
       setShows(response.data)
+    }).catch(() => {
+      // Error handled by backend status context
     })
+    
     api.get('/public/settings').then((response) => {
       setSettings(response.data)
       // Set class photo URL from API data if available
@@ -42,17 +52,25 @@ function HomePage() {
         // Show under construction image if no class photo in database
         setClassPhotoUrl('/under-construction.svg')
       }
+    }).catch(() => {
+      // Error handled by backend status context
     })
+    
     api.get('/public/initialization-status').then((response) => {
       const status = response.data
       setIsInitialized(status.isInitialized)
       setInitStatus(status)
+    }).catch(() => {
+      // Error handled by backend status context
     })
-  }, [])
+  }, [isOnline])
 
   // Format show times for display
   const formatShowTimes = () => {
-    if (shows.length === 0) return '17:45-18:45 eller 19:00-20:00'
+    if (shows.length === 0) {
+      // Don't show default times if backend is offline - show nothing or loading state
+      return isOnline ? 'Inga tider definierade' : ''
+    }
     return shows.map(show => `${show.startTime}-${show.endTime}`).join(' eller ')
   }
 
@@ -96,26 +114,28 @@ function HomePage() {
               </div>
             )}
             
-            <h2>{settings.welcomeMessage || 'Välkommen till 24c:s klasspelning!'}</h2>
-            <p>
-              På den här sidan kan du boka biljetter. Glöm inte att anmälan är gjord först när både bokning och betalning är inne. 
-              Dörrarna öppnar 15 minuter innan konsertstart. Ses där!
-            </p>
+            <h2>{settings.welcomeMessage || (isOnline ? 'Välkommen till 24c:s klasspelning!' : '')}</h2>
+            {isOnline && (
+              <p>
+                På den här sidan kan du boka biljetter. Glöm inte att anmälan är gjord först när både bokning och betalning är inne. 
+                Dörrarna öppnar 15 minuter innan konsertstart. Ses där!
+              </p>
+            )}
             
-            {isInitialized && (
+            {isInitialized && isOnline && (
               <>
                 <div className="concert-info-compact">
                   <div className="concert-details">
                     <h3>Konsertinformation</h3>
-                    <p><strong>Datum:</strong> {settings.concertDate || '2026-01-29'}</p>
-                    <p><strong>Plats:</strong> {settings.concertVenue || 'Aulan på Rytmus Stockholm'}</p>
-                    <p><strong>Tider:</strong> {formatShowTimes()}</p>
+                    {settings.concertDate && <p><strong>Datum:</strong> {settings.concertDate}</p>}
+                    {settings.concertVenue && <p><strong>Plats:</strong> {settings.concertVenue}</p>}
+                    {formatShowTimes() && <p><strong>Tider:</strong> {formatShowTimes()}</p>}
                   </div>
                   
                   <div className="pricing-compact">
                     <h3>Priser</h3>
-                    <p><strong>Ordinariebiljett:</strong> {settings.adultPrice || 200} kr</p>
-                    <p><strong>Studentbiljett:</strong> {settings.studentPrice || 100} kr</p>
+                    {settings.adultPrice && <p><strong>Ordinariebiljett:</strong> {settings.adultPrice} kr</p>}
+                    {settings.studentPrice && <p><strong>Studentbiljett:</strong> {settings.studentPrice} kr</p>}
                   </div>
                 </div>
                 

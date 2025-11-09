@@ -2,3 +2,56 @@
 .App {
   min-height: 100vh;
 }
+
+/* Backend status indicators */
+.backend-offline-banner {
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+  color: white;
+  padding: 20px;
+  margin: 20px 0;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  animation: slideInDown 0.5s ease-out;
+}
+
+.offline-content h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.5rem;
+}
+
+.offline-content p {
+  margin: 8px 0;
+  font-size: 1rem;
+}
+
+.offline-note {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+.backend-loading {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.backend-loading p {
+  font-size: 1.1rem;
+}
+
+.backend-offline-content {
+  text-align: center;
+  padding: 40px 20px;
+  color: #666;
+}
+
+.backend-offline-content h2 {
+  color: #dc2626;
+  margin-bottom: 15px;
+}
+
+.backend-offline-content p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}

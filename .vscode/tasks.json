@@ -28,7 +28,7 @@
                 "background": {
                     "activeOnStart": true,
                     "beginsPattern": ".*",
-                    "endsPattern": "(.*Local:.*|.*ready in.*|.*VITE.*ready.*)"
+                    "endsPattern": "(.*Local:.*|.*ready in.*|.*VITE.*ready.*|.*dev server running.*)"
                 }
             }
         },
