@@ -6,7 +6,6 @@ import Layout from '../components/Layout'
 import './BookingPage.css'
 
 interface Settings {
-  concertDate?: string
   adultPrice?: number
   studentPrice?: number
   adultLabel?: string
@@ -53,6 +52,47 @@ function BookingPage() {
       setSettings(response.data)
     })
   }, [navigate])
+
+  // Format date for Swedish display (yyyy-MM-dd -> dd MMM yyyy)
+  const formatDate = (dateStr: string): string => {
+    try {
+      const date = new Date(dateStr + 'T00:00:00') // Add time to avoid timezone issues
+      const months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+      const day = date.getDate()
+      const month = months[date.getMonth()]
+      const year = date.getFullYear()
+      return `${day} ${month} ${year}`
+    } catch {
+      return dateStr // Fallback to original if parsing fails
+    }
+  }
+
+  // Group shows by date and format for display
+  const formatShowsByDate = () => {
+    if (shows.length === 0) {
+      return null
+    }
+
+    // Group shows by date
+    const showsByDate = shows.reduce((acc, show) => {
+      const date = show.date
+      if (!acc[date]) {
+        acc[date] = []
+      }
+      acc[date].push(show)
+      return acc
+    }, {} as Record<string, Show[]>)
+
+    // Sort dates
+    const sortedDates = Object.keys(showsByDate).sort()
+
+    return sortedDates.map(date => {
+      const dateShows = showsByDate[date]
+      return { date, formattedDate: formatDate(date), shows: dateShows }
+    })
+  }
+
+  const showsByDate = formatShowsByDate()
 
   const adultPrice = settings.adultPrice || 200
   const studentPrice = settings.studentPrice || 100
@@ -104,37 +144,43 @@ function BookingPage() {
           {step === 1 && (
             <div className="booking-step">
               <h2>Steg 1: Välj tid</h2>
-              <div className="concert-date-info">
-                <h3>Konsertdatum: {settings.concertDate || '2026-01-29'}</h3>
-              </div>
               <form onSubmit={(e) => { e.preventDefault(); if (formData.showId) handleTimeSelection(formData.showId) }}>
-                <div className="time-selection">
-                  {shows.map((show) => (
-                    <div key={show.id} className="time-option">
-                      <input
-                        type="radio"
-                        id={`show_${show.id}`}
-                        name="show_id"
-                        value={show.id}
-                        checked={formData.showId === show.id}
-                        onChange={() => setFormData({ ...formData, showId: show.id })}
-                        required
-                      />
-                      <label htmlFor={`show_${show.id}`} className="time-label">
-                        <div className="time-slot">
-                          <span className="time">{show.startTime}-{show.endTime}</span>
-                          <span className="availability">
-                            {show.availableTickets === 0 ? (
-                              <span className="sold-out">Slutsåld</span>
-                            ) : (
-                              <span className="available">{show.availableTickets} biljetter kvar</span>
-                            )}
-                          </span>
-                        </div>
-                      </label>
+                {showsByDate && showsByDate.length > 0 ? (
+                  showsByDate.map((dateGroup) => (
+                    <div key={dateGroup.date} className="date-group">
+                      <h3 className="date-header">Datum: {dateGroup.formattedDate}</h3>
+                      <div className="time-selection">
+                        {dateGroup.shows.map((show) => (
+                          <div key={show.id} className="time-option">
+                            <input
+                              type="radio"
+                              id={`show_${show.id}`}
+                              name="show_id"
+                              value={show.id}
+                              checked={formData.showId === show.id}
+                              onChange={() => setFormData({ ...formData, showId: show.id })}
+                              required
+                            />
+                            <label htmlFor={`show_${show.id}`} className="time-label">
+                              <div className="time-slot">
+                                <span className="time">{show.startTime}-{show.endTime}</span>
+                                <span className="availability">
+                                  {show.availableTickets === 0 ? (
+                                    <span className="sold-out">Slutsåld</span>
+                                  ) : (
+                                    <span className="available">{show.availableTickets} biljetter kvar</span>
+                                  )}
+                                </span>
+                              </div>
+                            </label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  ))}
-                </div>
+                  ))
+                ) : (
+                  <p>Inga föreställningar tillgängliga.</p>
+                )}
                 <div className="step-actions">
                   <Link to="/" className="btn btn-secondary">Tillbaka</Link>
                   <button type="submit" className="btn btn-primary" disabled={!formData.showId}>
@@ -149,7 +195,7 @@ function BookingPage() {
             <div className="booking-step">
               <h2>Steg 2: Välj antal biljetter</h2>
               <div className="selected-time">
-                <p><strong>Konsertdatum:</strong> {settings.concertDate || '2026-01-29'}</p>
+                <p><strong>Datum:</strong> {selectedShow.date ? formatDate(selectedShow.date) : ''}</p>
                 <p><strong>Vald tid:</strong> {selectedShow.startTime}-{selectedShow.endTime}</p>
               </div>
               
@@ -246,7 +292,8 @@ function BookingPage() {
               <div className="booking-summary">
                 <h3>Din bokning:</h3>
                 <ul>
-                  <li><strong>Konsertdatum:</strong> {settings.concertDate || '2026-01-29'}</li>
+                  <li><strong>Datum:</strong> {selectedShow.date ? formatDate(selectedShow.date) : ''}</li>
+                  <li><strong>Tid:</strong> {selectedShow.startTime}-{selectedShow.endTime}</li>
                   <li><strong>{settings.adultLabel || 'Ordinariebiljett'}:</strong> {formData.adultTickets} st</li>
                   <li><strong>{settings.studentLabel || 'Studentbiljett'}:</strong> {formData.studentTickets} st</li>
                   <li><strong>Totalt:</strong> {totalAmount} kr</li>
