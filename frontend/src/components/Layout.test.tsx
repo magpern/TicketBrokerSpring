@@ -1,6 +1,35 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
+
+// Mock react-i18next BEFORE importing Layout
+vi.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key: string) => {
+      const translations: Record<string, string> = {
+        'layout.backendOffline': 'Backend är inte tillgänglig',
+        'layout.backendOfflineMessage': 'Systemet kan inte ansluta till servern. Vänligen försök igen senare.',
+        'layout.backendOfflineNote': 'Sidan uppdateras automatiskt när anslutningen återställs.',
+        'layout.checkingConnection': 'Kontrollerar anslutning till servern...',
+        'layout.systemUnavailable': 'Systemet är inte tillgängligt',
+        'layout.systemUnavailableMessage': 'Vi kan för närvarande inte ansluta till servern. Vänligen försök igen om en stund.',
+        'common.contact': 'Kontakt',
+        'common.contactLoading': 'Kontaktinformation laddas...',
+      }
+      return translations[key] || key
+    },
+    i18n: {
+      language: 'sv',
+      changeLanguage: vi.fn(),
+    },
+  }),
+}))
+
+// Mock LanguageSwitcher to avoid i18n issues
+vi.mock('./LanguageSwitcher', () => ({
+  default: () => <div data-testid="language-switcher">Language Switcher</div>,
+}))
+
 import Layout from './Layout'
 
 // Mock the BackendStatusContext
