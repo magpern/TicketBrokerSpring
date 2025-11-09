@@ -1,6 +1,8 @@
 import { useEffect, useState, ReactNode } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useBackendStatus } from '../contexts/BackendStatusContext'
+import LanguageSwitcher from './LanguageSwitcher'
 import api from '../services/api'
 
 interface LayoutProps {
@@ -8,6 +10,7 @@ interface LayoutProps {
 }
 
 function Layout({ children }: LayoutProps) {
+  const { t } = useTranslation()
   const { isOnline, isChecking, lastChecked } = useBackendStatus()
   const [concertName, setConcertName] = useState('Klasskonsert')
   const [contactEmail, setContactEmail] = useState('')
@@ -32,26 +35,29 @@ function Layout({ children }: LayoutProps) {
       {!isOnline && !isChecking && (
         <div className="backend-offline-banner">
           <div className="offline-content">
-            <h2>⚠️ Backend är inte tillgänglig</h2>
-            <p>Systemet kan inte ansluta till servern. Vänligen försök igen senare.</p>
-            <p className="offline-note">Sidan uppdateras automatiskt när anslutningen återställs.</p>
+            <h2>⚠️ {t('layout.backendOffline')}</h2>
+            <p>{t('layout.backendOfflineMessage')}</p>
+            <p className="offline-note">{t('layout.backendOfflineNote')}</p>
           </div>
         </div>
       )}
       <header className="header">
-        <h1 className="title">{concertName}</h1>
+        <div className="header-content">
+          <h1 className="title">{concertName}</h1>
+          <LanguageSwitcher />
+        </div>
       </header>
       <main className="main">
         {isChecking && lastChecked === null ? (
           <div className="backend-loading">
-            <p>Kontrollerar anslutning till servern...</p>
+            <p>{t('layout.checkingConnection')}</p>
           </div>
         ) : isOnline ? (
           children
         ) : (
           <div className="backend-offline-content">
-            <h2>Systemet är inte tillgängligt</h2>
-            <p>Vi kan för närvarande inte ansluta till servern. Vänligen försök igen om en stund.</p>
+            <h2>{t('layout.systemUnavailable')}</h2>
+            <p>{t('layout.systemUnavailableMessage')}</p>
           </div>
         )}
       </main>
@@ -59,10 +65,10 @@ function Layout({ children }: LayoutProps) {
         <p>
           {contactEmail ? (
             <>
-              Kontakt: <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
+              {t('common.contact')}: <a href={`mailto:${contactEmail}`}>{contactEmail}</a>
             </>
           ) : (
-            <span>Kontaktinformation laddas...</span>
+            <span>{t('common.contactLoading')}</span>
           )}
         </p>
       </footer>

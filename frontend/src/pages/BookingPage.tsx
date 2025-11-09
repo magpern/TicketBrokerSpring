@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
 import api from '../services/api'
@@ -13,6 +14,7 @@ interface Settings {
 }
 
 function BookingPage() {
+  const { t } = useTranslation()
   const navigate = useNavigate()
   const [step, setStep] = useState(1)
   const [shows, setShows] = useState<Show[]>([])
@@ -53,11 +55,15 @@ function BookingPage() {
     })
   }, [navigate])
 
-  // Format date for Swedish display (yyyy-MM-dd -> dd MMM yyyy)
+  // Format date based on current language (yyyy-MM-dd -> dd MMM yyyy)
   const formatDate = (dateStr: string): string => {
     try {
       const date = new Date(dateStr + 'T00:00:00') // Add time to avoid timezone issues
-      const months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+      const months = [
+        t('months.jan'), t('months.feb'), t('months.mar'), t('months.apr'),
+        t('months.maj'), t('months.jun'), t('months.jul'), t('months.aug'),
+        t('months.sep'), t('months.okt'), t('months.nov'), t('months.dec')
+      ]
       const day = date.getDate()
       const month = months[date.getMonth()]
       const year = date.getFullYear()
@@ -123,7 +129,7 @@ function BookingPage() {
     e.preventDefault()
     if (step === 2) {
       if (totalTickets === 0) {
-        alert('Välj minst en biljett')
+        alert(t('booking.selectAtLeastOne'))
         return
       }
       setStep(3)
@@ -133,7 +139,7 @@ function BookingPage() {
         navigate(`/booking/success/${response.data.bookingReference}/${response.data.email}`)
       } catch (error) {
         console.error('Booking failed:', error)
-        alert('Bokningen misslyckades. Försök igen.')
+        alert(t('booking.bookingFailed'))
       }
     }
   }
@@ -143,12 +149,12 @@ function BookingPage() {
       <div className="booking-container">
           {step === 1 && (
             <div className="booking-step">
-              <h2>Steg 1: Välj tid</h2>
+              <h2>{t('booking.step1')}</h2>
               <form onSubmit={(e) => { e.preventDefault(); if (formData.showId) handleTimeSelection(formData.showId) }}>
                 {showsByDate && showsByDate.length > 0 ? (
                   showsByDate.map((dateGroup) => (
                     <div key={dateGroup.date} className="date-group">
-                      <h3 className="date-header">Datum: {dateGroup.formattedDate}</h3>
+                      <h3 className="date-header">{t('common.date')}: {dateGroup.formattedDate}</h3>
                       <div className="time-selection">
                         {dateGroup.shows.map((show) => (
                           <div key={show.id} className="time-option">
@@ -166,9 +172,9 @@ function BookingPage() {
                                 <span className="time">{show.startTime}-{show.endTime}</span>
                                 <span className="availability">
                                   {show.availableTickets === 0 ? (
-                                    <span className="sold-out">Slutsåld</span>
+                                    <span className="sold-out">{t('common.soldOut')}</span>
                                   ) : (
-                                    <span className="available">{show.availableTickets} biljetter kvar</span>
+                                    <span className="available">{show.availableTickets} {t('common.ticketsLeft')}</span>
                                   )}
                                 </span>
                               </div>
@@ -179,12 +185,12 @@ function BookingPage() {
                     </div>
                   ))
                 ) : (
-                  <p>Inga föreställningar tillgängliga.</p>
+                  <p>{t('booking.noShowsAvailable')}</p>
                 )}
                 <div className="step-actions">
-                  <Link to="/" className="btn btn-secondary">Tillbaka</Link>
+                  <Link to="/" className="btn btn-secondary">{t('common.back')}</Link>
                   <button type="submit" className="btn btn-primary" disabled={!formData.showId}>
-                    Nästa
+                    {t('common.next')}
                   </button>
                 </div>
               </form>
@@ -193,16 +199,16 @@ function BookingPage() {
 
           {step === 2 && selectedShow && (
             <div className="booking-step">
-              <h2>Steg 2: Välj antal biljetter</h2>
+              <h2>{t('booking.step2')}</h2>
               <div className="selected-time">
-                <p><strong>Datum:</strong> {selectedShow.date ? formatDate(selectedShow.date) : ''}</p>
-                <p><strong>Vald tid:</strong> {selectedShow.startTime}-{selectedShow.endTime}</p>
+                <p><strong>{t('common.date')}:</strong> {selectedShow.date ? formatDate(selectedShow.date) : ''}</p>
+                <p><strong>{t('booking.selectedTime')}:</strong> {selectedShow.startTime}-{selectedShow.endTime}</p>
               </div>
               
               <form onSubmit={handleSubmit}>
                 <div className="ticket-selection">
                   <div className="ticket-type">
-                    <h3>{settings.adultLabel || 'Ordinariebiljett'} ({adultPrice} kr)</h3>
+                    <h3>{settings.adultLabel || t('home.adultTicket')} ({adultPrice} {t('common.kr')})</h3>
                     <div className="ticket-counter">
                       <button
                         type="button"
@@ -233,7 +239,7 @@ function BookingPage() {
                   </div>
                   
                   <div className="ticket-type">
-                    <h3>{settings.studentLabel || 'Studentbiljett'} ({studentPrice} kr)</h3>
+                    <h3>{settings.studentLabel || t('home.studentTicket')} ({studentPrice} {t('common.kr')})</h3>
                     <div className="ticket-counter">
                       <button
                         type="button"
@@ -266,19 +272,19 @@ function BookingPage() {
                 
                 <div className="total-section">
                   <div className="total-display">
-                    <p><strong>Totalt att betala:</strong> <span id="total-amount">{totalAmount}</span> kr</p>
+                    <p><strong>{t('common.totalToPay')}:</strong> <span id="total-amount">{totalAmount}</span> {t('common.kr')}</p>
                   </div>
                   <div className="swish-reminder">
-                    <p>Lägg dina biljetter i varukorgen, gå till varukorgen och verkställ betalning</p>
+                    <p>{t('booking.addToCart')}</p>
                   </div>
                 </div>
                 
                 <div className="step-actions">
                   <button type="button" onClick={() => setStep(1)} className="btn btn-secondary">
-                    Tillbaka
+                    {t('common.back')}
                   </button>
                   <button type="submit" className="btn btn-primary" id="next-btn" disabled={totalTickets === 0}>
-                    Till Varukorg
+                    {t('booking.toCart')}
                   </button>
                 </div>
               </form>
@@ -287,23 +293,23 @@ function BookingPage() {
 
           {step === 3 && selectedShow && (
             <div className="booking-step">
-              <h2>Steg 3: Kontaktuppgifter</h2>
+              <h2>{t('booking.step3')}</h2>
               
               <div className="booking-summary">
-                <h3>Din bokning:</h3>
+                <h3>{t('booking.bookingSummary')}</h3>
                 <ul>
-                  <li><strong>Datum:</strong> {selectedShow.date ? formatDate(selectedShow.date) : ''}</li>
-                  <li><strong>Tid:</strong> {selectedShow.startTime}-{selectedShow.endTime}</li>
-                  <li><strong>{settings.adultLabel || 'Ordinariebiljett'}:</strong> {formData.adultTickets} st</li>
-                  <li><strong>{settings.studentLabel || 'Studentbiljett'}:</strong> {formData.studentTickets} st</li>
-                  <li><strong>Totalt:</strong> {totalAmount} kr</li>
+                  <li><strong>{t('common.date')}:</strong> {selectedShow.date ? formatDate(selectedShow.date) : ''}</li>
+                  <li><strong>{t('common.time')}:</strong> {selectedShow.startTime}-{selectedShow.endTime}</li>
+                  <li><strong>{settings.adultLabel || t('home.adultTicket')}:</strong> {formData.adultTickets} st</li>
+                  <li><strong>{settings.studentLabel || t('home.studentTicket')}:</strong> {formData.studentTickets} st</li>
+                  <li><strong>{t('common.total')}:</strong> {totalAmount} {t('common.kr')}</li>
                 </ul>
               </div>
               
               <form onSubmit={handleSubmit}>
                 <div className="contact-form">
                   <div className="form-group">
-                    <label htmlFor="first_name">Förnamn *</label>
+                    <label htmlFor="first_name">{t('common.firstName')} *</label>
                     <input
                       type="text"
                       id="first_name"
@@ -315,7 +321,7 @@ function BookingPage() {
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="last_name">Efternamn *</label>
+                    <label htmlFor="last_name">{t('common.lastName')} *</label>
                     <input
                       type="text"
                       id="last_name"
@@ -327,7 +333,7 @@ function BookingPage() {
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="email">E-postadress *</label>
+                    <label htmlFor="email">{t('common.email')} *</label>
                     <input
                       type="email"
                       id="email"
@@ -339,7 +345,7 @@ function BookingPage() {
                   </div>
                   
                   <div className="form-group">
-                    <label htmlFor="phone">Telefonnummer *</label>
+                    <label htmlFor="phone">{t('common.phone')} *</label>
                     <input
                       type="tel"
                       id="phone"
@@ -360,24 +366,23 @@ function BookingPage() {
                       onChange={(e) => setFormData({ ...formData, gdprConsent: e.target.checked })}
                     />
                     <label htmlFor="gdpr_consent">
-                      Jag godkänner att denna information sparas för verifiering och raderas senast 1 månad efter konserten hos Klasskonsertgruppen *
+                      {t('booking.gdprConsent')} *
                     </label>
                   </div>
                 </div>
                 
                 <div className="swish-reminder">
                   <p>
-                    <strong>OBS!</strong> Du har reserverat en plats först när du BÅDE har reserverat en biljett här på hemsidan - och betalat. 
-                    Klicka på länken nedan för att betala.
+                    <strong>{t('home.important')}</strong> {t('booking.paymentReminder')}
                   </p>
                 </div>
                 
                 <div className="step-actions">
                   <button type="button" onClick={() => setStep(2)} className="btn btn-secondary">
-                    Tillbaka
+                    {t('common.back')}
                   </button>
                   <button type="submit" className="btn btn-primary">
-                    Till Betalning
+                    {t('booking.toPayment')}
                   </button>
                 </div>
               </form>
