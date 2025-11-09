@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
-import api from '../services/api'
-import { Show, BookingRequest } from '../types/booking'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import Layout from '../components/Layout'
+import api from '../services/api'
+import { BookingRequest, Show } from '../types/booking'
 import './BookingPage.css'
 
 interface Settings {
@@ -269,7 +269,7 @@ function BookingPage() {
                     <p><strong>Totalt att betala:</strong> <span id="total-amount">{totalAmount}</span> kr</p>
                   </div>
                   <div className="swish-reminder">
-                    <p>Klicka på betalningslänken nedan för att betala</p>
+                    <p>Lägg dina biljetter i varukorgen, gå till varukorgen och verkställ betalning</p>
                   </div>
                 </div>
                 
