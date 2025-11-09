@@ -548,8 +548,7 @@ public class AdminApiController {
     public ResponseEntity<Map<String, String>> getSettings() {
         Map<String, String> settings = new HashMap<>();
         settings.put("concertName", settingsService.getValue("concert_name", "Klasskonsert 24C"));
-        settings.put("welcomeMessage",
-                settingsService.getValue("welcome_message", "Välkommen till 24c:s klasspelning!"));
+        // welcome_message removed - now uses localized "Welcome to [concert name]"
         // concertDate removed - dates are now managed via shows
         settings.put("concertVenue", settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm"));
         settings.put("adultPrice", settingsService.getValue("adult_ticket_price", "200"));
@@ -582,7 +581,7 @@ public class AdminApiController {
             MediaType.APPLICATION_JSON_VALUE })
     public ResponseEntity<Map<String, String>> updateSettings(
             @RequestParam(value = "concert_name", required = false) String concertName,
-            @RequestParam(value = "welcome_message", required = false) String welcomeMessage,
+            // welcome_message removed - now uses localized "Welcome to [concert name]"
             @RequestParam(value = "concert_venue", required = false) String concertVenue,
             @RequestParam(value = "adult_ticket_price", required = false) String adultPrice,
             @RequestParam(value = "student_ticket_price", required = false) String studentPrice,
@@ -604,8 +603,7 @@ public class AdminApiController {
         // Handle text settings
         if (concertName != null)
             settingsService.setValue("concert_name", concertName);
-        if (welcomeMessage != null)
-            settingsService.setValue("welcome_message", welcomeMessage);
+        // welcome_message removed - now uses localized "Welcome to [concert name]"
         // concert_date removed - dates are now managed via shows
         if (concertVenue != null)
             settingsService.setValue("concert_venue", concertVenue);

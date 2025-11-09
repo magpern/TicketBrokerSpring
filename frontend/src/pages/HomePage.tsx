@@ -152,7 +152,7 @@ function HomePage() {
               </div>
             )}
             
-            <h2>{settings.welcomeMessage || (isOnline ? t('home.welcome') : '')}</h2>
+            <h2>{isOnline ? t('home.welcome', { concertName: settings.concertName || '24c:s klasspelning' }) : ''}</h2>
             {isOnline && (
               <p>
                 {t('home.intro')}

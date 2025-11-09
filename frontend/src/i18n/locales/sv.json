@@ -39,7 +39,7 @@
     "systemUnavailableMessage": "Vi kan för närvarande inte ansluta till servern. Vänligen försök igen om en stund."
   },
   "home": {
-    "welcome": "Välkommen till 24c:s klasspelning!",
+    "welcome": "Välkommen till {{concertName}}!",
     "intro": "På den här sidan kan du boka biljetter. Glöm inte att anmälan är gjord först när både bokning och betalning är inne. Dörrarna öppnar 15 minuter innan konsertstart. Ses där!",
     "systemInitializing": "Systemet är under initialisering",
     "noShowsDefined": "Inga föreställningar definierade",

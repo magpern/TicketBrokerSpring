@@ -39,7 +39,7 @@
     "systemUnavailableMessage": "We currently cannot connect to the server. Please try again in a moment."
   },
   "home": {
-    "welcome": "Welcome to 24c's class performance!",
+    "welcome": "Welcome to {{concertName}}!",
     "intro": "On this page you can book tickets. Remember that registration is only complete when both booking and payment are received. Doors open 15 minutes before concert start. See you there!",
     "systemInitializing": "System is initializing",
     "noShowsDefined": "No shows defined",

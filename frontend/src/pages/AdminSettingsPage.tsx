@@ -6,7 +6,6 @@ import './AdminSettingsPage.css'
 
 interface Settings {
   concertName: string
-  welcomeMessage: string
   concertVenue: string
   adultPrice: string
   studentPrice: string
@@ -27,7 +26,6 @@ function AdminSettingsPage() {
   const navigate = useNavigate()
   const [settings, setSettings] = useState<Settings>({
     concertName: '',
-    welcomeMessage: '',
     concertVenue: '',
     adultPrice: '',
     studentPrice: '',
@@ -56,7 +54,6 @@ function AdminSettingsPage() {
       const data = response.data
       setSettings({
         concertName: data.concertName || '',
-        welcomeMessage: data.welcomeMessage || '',
         concertVenue: data.concertVenue || '',
         adultPrice: data.adultPrice || '',
         studentPrice: data.studentPrice || '',
@@ -95,7 +92,6 @@ function AdminSettingsPage() {
       // Map frontend keys to backend keys for text settings
       const settingsToSave: { [key: string]: string } = {
         concert_name: settings.concertName,
-        welcome_message: settings.welcomeMessage,
         concert_venue: settings.concertVenue,
         adult_ticket_price: settings.adultPrice,
         student_ticket_price: settings.studentPrice,
@@ -191,23 +187,12 @@ function AdminSettingsPage() {
               <div className="settings-group">
                 <h3>Konsertinformation</h3>
                 <div className="form-group">
-                  <label htmlFor="concertName">Konsert namn</label>
+                  <label htmlFor="concertName">Konsertnamn</label>
                   <input
                     type="text"
                     id="concertName"
                     value={settings.concertName}
                     onChange={(e) => handleChange('concertName', e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="welcomeMessage">Välkomstmeddelande</label>
-                  <input
-                    type="text"
-                    id="welcomeMessage"
-                    value={settings.welcomeMessage}
-                    onChange={(e) => handleChange('welcomeMessage', e.target.value)}
                     required
                   />
                 </div>

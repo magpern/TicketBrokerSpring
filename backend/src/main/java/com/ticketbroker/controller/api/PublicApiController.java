@@ -272,8 +272,7 @@ public class PublicApiController {
     public ResponseEntity<Map<String, String>> getSettings() {
         Map<String, String> settings = new HashMap<>();
         settings.put("concertName", settingsService.getValue("concert_name", "Klasskonsert 24C"));
-        settings.put("welcomeMessage",
-                settingsService.getValue("welcome_message", "Välkommen till 24c:s klasspelning!"));
+        // welcome_message removed - now uses localized "Welcome to [concert name]"
         // concertDate removed - dates are now managed via shows
         settings.put("concertVenue", settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm"));
         settings.put("adultPrice", settingsService.getValue("adult_ticket_price", "200"));

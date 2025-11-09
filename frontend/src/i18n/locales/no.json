@@ -39,7 +39,7 @@
     "systemUnavailableMessage": "Vi kan for øyeblikket ikke koble til serveren. Vennligst prøv igjen om et øyeblikk."
   },
   "home": {
-    "welcome": "Velkommen til 24c's klassespill!",
+    "welcome": "Velkommen til {{concertName}}!",
     "intro": "På denne siden kan du bestille billetter. Husk at påmeldingen først er gjort når både bestilling og betaling er mottatt. Dørene åpner 15 minutter før konsertstart. Sees der!",
     "systemInitializing": "Systemet initialiseres",
     "noShowsDefined": "Ingen forestillinger definert",
