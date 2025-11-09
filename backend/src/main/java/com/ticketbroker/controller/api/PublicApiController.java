@@ -73,6 +73,24 @@ public class PublicApiController {
         return ResponseEntity.ok(responses);
     }
 
+    @GetMapping("/initialization-status")
+    public ResponseEntity<Map<String, Object>> getInitializationStatus() {
+        List<Show> shows = showRepository.findAllByOrderByDateAscStartTimeAsc();
+        String classPhotoData = settingsService.getValue("class_photo_data", null);
+        boolean hasShows = !shows.isEmpty();
+        boolean hasClassPhoto = classPhotoData != null && !classPhotoData.trim().isEmpty();
+        boolean isInitialized = hasShows && hasClassPhoto;
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("isInitialized", isInitialized);
+        response.put("hasShows", hasShows);
+        response.put("hasClassPhoto", hasClassPhoto);
+        response.put("message", isInitialized ? null : 
+            "Systemet är under initialisering. Bokning kommer att vara tillgänglig när all konfiguration är klar.");
+
+        return ResponseEntity.ok(response);
+    }
+
     @GetMapping("/shows/{id}/availability")
     public ResponseEntity<Map<String, Object>> checkAvailability(@PathVariable Long id) {
         Objects.requireNonNull(id, "Show ID cannot be null");

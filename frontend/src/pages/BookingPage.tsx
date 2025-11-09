@@ -31,13 +31,28 @@ function BookingPage() {
   })
 
   useEffect(() => {
+    // Check initialization status
+    api.get('/public/initialization-status').then((response) => {
+      const status = response.data
+      if (!status.isInitialized) {
+        // Redirect to home if not initialized
+        navigate('/', { replace: true })
+      }
+    }).catch(() => {
+      // If check fails, allow access (graceful degradation)
+    })
+    
     api.get('/public/shows').then((response) => {
       setShows(response.data)
+      if (response.data.length === 0) {
+        // No shows available, redirect to home
+        navigate('/', { replace: true })
+      }
     })
     api.get('/public/settings').then((response) => {
       setSettings(response.data)
     })
-  }, [])
+  }, [navigate])
 
   const adultPrice = settings.adultPrice || 200
   const studentPrice = settings.studentPrice || 100
