@@ -1,9 +1,11 @@
-name: Build and Push Docker Images
+name: Test and Build Docker Images
 
 on:
   push:
+    branches:
+      - '**'  # Run on all branch pushes
     tags:
-      - 'v*'
+      - 'v*'  # Also run on version tags
   workflow_dispatch:
 
 env:
@@ -60,6 +62,7 @@ jobs:
     name: Build and Push Backend Image
     needs: [test-backend]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       packages: write
@@ -106,6 +109,7 @@ jobs:
     name: Build and Push Frontend Image
     needs: [test-frontend]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     permissions:
       contents: read
       packages: write
