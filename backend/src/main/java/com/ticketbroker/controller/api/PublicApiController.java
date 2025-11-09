@@ -274,7 +274,7 @@ public class PublicApiController {
         settings.put("concertName", settingsService.getValue("concert_name", "Klasskonsert 24C"));
         settings.put("welcomeMessage",
                 settingsService.getValue("welcome_message", "Välkommen till 24c:s klasspelning!"));
-        settings.put("concertDate", settingsService.getValue("concert_date", "29/1 2026"));
+        // concertDate removed - dates are now managed via shows
         settings.put("concertVenue", settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm"));
         settings.put("adultPrice", settingsService.getValue("adult_ticket_price", "200"));
         settings.put("studentPrice", settingsService.getValue("student_ticket_price", "100"));

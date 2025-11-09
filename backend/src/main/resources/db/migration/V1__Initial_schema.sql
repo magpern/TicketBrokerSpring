@@ -74,3 +74,6 @@ CREATE INDEX idx_bookings_email ON bookings(email);
 CREATE INDEX idx_tickets_booking_id ON tickets(booking_id);
 CREATE INDEX idx_tickets_show_id ON tickets(show_id);
 CREATE INDEX idx_tickets_reference ON tickets(ticket_reference);
+
+-- Note: concert_date setting is not created here as dates are managed via the shows table
+-- If any existing database has this setting, it should be removed manually or via a separate migration

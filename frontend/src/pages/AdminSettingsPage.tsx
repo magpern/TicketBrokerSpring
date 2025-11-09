@@ -7,7 +7,6 @@ import './AdminSettingsPage.css'
 interface Settings {
   concertName: string
   welcomeMessage: string
-  concertDate: string
   concertVenue: string
   adultPrice: string
   studentPrice: string
@@ -29,7 +28,6 @@ function AdminSettingsPage() {
   const [settings, setSettings] = useState<Settings>({
     concertName: '',
     welcomeMessage: '',
-    concertDate: '',
     concertVenue: '',
     adultPrice: '',
     studentPrice: '',
@@ -59,7 +57,6 @@ function AdminSettingsPage() {
       setSettings({
         concertName: data.concertName || '',
         welcomeMessage: data.welcomeMessage || '',
-        concertDate: data.concertDate || '',
         concertVenue: data.concertVenue || '',
         adultPrice: data.adultPrice || '',
         studentPrice: data.studentPrice || '',
@@ -99,7 +96,6 @@ function AdminSettingsPage() {
       const settingsToSave: { [key: string]: string } = {
         concert_name: settings.concertName,
         welcome_message: settings.welcomeMessage,
-        concert_date: settings.concertDate,
         concert_venue: settings.concertVenue,
         adult_ticket_price: settings.adultPrice,
         student_ticket_price: settings.studentPrice,
@@ -217,17 +213,6 @@ function AdminSettingsPage() {
                 </div>
 
                 <div className="form-group">
-                  <label htmlFor="concertDate">Konsertdatum</label>
-                  <input
-                    type="date"
-                    id="concertDate"
-                    value={settings.concertDate}
-                    onChange={(e) => handleChange('concertDate', e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
                   <label htmlFor="concertVenue">Konsertlokal</label>
                   <input
                     type="text"
@@ -236,6 +221,14 @@ function AdminSettingsPage() {
                     onChange={(e) => handleChange('concertVenue', e.target.value)}
                     required
                   />
+                </div>
+
+                <div className="form-group">
+                  <label>Konsertdatum och tider</label>
+                  <p className="form-help-text">
+                    Datum och tider hanteras via <Link to="/admin/shows">Föreställningar</Link>. 
+                    Här kan du hantera alla föreställningar och deras datum.
+                  </p>
                 </div>
               </div>
 

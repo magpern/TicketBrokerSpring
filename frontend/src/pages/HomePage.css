@@ -79,3 +79,28 @@
   padding: 20px;
   opacity: 0.9;
 }
+
+.shows-by-date {
+  margin-top: 10px;
+}
+
+.show-date-group {
+  margin-bottom: 15px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 5px;
+}
+
+.show-date-group:last-child {
+  margin-bottom: 0;
+}
+
+.show-date-group p {
+  margin: 5px 0;
+}
+
+.no-shows-message {
+  color: #666;
+  font-style: italic;
+  margin-top: 10px;
+}

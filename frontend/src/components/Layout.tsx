@@ -8,7 +8,7 @@ interface LayoutProps {
 }
 
 function Layout({ children }: LayoutProps) {
-  const { isOnline, isChecking } = useBackendStatus()
+  const { isOnline, isChecking, lastChecked } = useBackendStatus()
   const [concertName, setConcertName] = useState('Klasskonsert')
   const [contactEmail, setContactEmail] = useState('')
 
@@ -42,7 +42,7 @@ function Layout({ children }: LayoutProps) {
         <h1 className="title">{concertName}</h1>
       </header>
       <main className="main">
-        {isChecking ? (
+        {isChecking && lastChecked === null ? (
           <div className="backend-loading">
             <p>Kontrollerar anslutning till servern...</p>
           </div>

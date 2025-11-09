@@ -410,7 +410,15 @@ public class AdminApiController {
     @PostMapping("/shows")
     public ResponseEntity<Map<String, Object>> createShow(@RequestBody Map<String, Object> request) {
         Show show = new Show();
-        show.setDate(parseShowDate(request.get("date")));
+        LocalDate showDate = parseShowDate(request.get("date"));
+        
+        // Validate that the date is not in the past
+        LocalDate today = LocalDate.now();
+        if (showDate != null && showDate.isBefore(today)) {
+            throw new IllegalArgumentException("Datum kan inte vara tidigare än idag.");
+        }
+        
+        show.setDate(showDate);
         show.setStartTime((String) request.get("startTime"));
         show.setEndTime((String) request.get("endTime"));
         Integer totalTickets = request.get("totalTickets") != null ? ((Number) request.get("totalTickets")).intValue()
@@ -542,7 +550,7 @@ public class AdminApiController {
         settings.put("concertName", settingsService.getValue("concert_name", "Klasskonsert 24C"));
         settings.put("welcomeMessage",
                 settingsService.getValue("welcome_message", "Välkommen till 24c:s klasspelning!"));
-        settings.put("concertDate", settingsService.getValue("concert_date", "29/1 2026"));
+        // concertDate removed - dates are now managed via shows
         settings.put("concertVenue", settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm"));
         settings.put("adultPrice", settingsService.getValue("adult_ticket_price", "200"));
         settings.put("studentPrice", settingsService.getValue("student_ticket_price", "100"));
@@ -575,7 +583,6 @@ public class AdminApiController {
     public ResponseEntity<Map<String, String>> updateSettings(
             @RequestParam(value = "concert_name", required = false) String concertName,
             @RequestParam(value = "welcome_message", required = false) String welcomeMessage,
-            @RequestParam(value = "concert_date", required = false) String concertDate,
             @RequestParam(value = "concert_venue", required = false) String concertVenue,
             @RequestParam(value = "adult_ticket_price", required = false) String adultPrice,
             @RequestParam(value = "student_ticket_price", required = false) String studentPrice,
@@ -599,8 +606,7 @@ public class AdminApiController {
             settingsService.setValue("concert_name", concertName);
         if (welcomeMessage != null)
             settingsService.setValue("welcome_message", welcomeMessage);
-        if (concertDate != null)
-            settingsService.setValue("concert_date", concertDate);
+        // concert_date removed - dates are now managed via shows
         if (concertVenue != null)
             settingsService.setValue("concert_venue", concertVenue);
         if (adultPrice != null)

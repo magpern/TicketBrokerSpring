@@ -67,3 +67,19 @@
   cursor: not-allowed;
 }
 
+.form-help-text {
+  font-size: 0.9rem;
+  color: #666;
+  margin-top: 5px;
+  font-style: italic;
+}
+
+.form-help-text a {
+  color: #1976d2;
+  text-decoration: underline;
+}
+
+.form-help-text a:hover {
+  text-decoration: none;
+}
+

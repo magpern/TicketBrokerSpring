@@ -137,6 +137,7 @@ function AdminShowsPage() {
                   value={showForm.date}
                   onChange={(e) => setShowForm({ ...showForm, date: e.target.value })}
                   placeholder="2026-01-29"
+                  min={new Date().toISOString().split('T')[0]}
                   required
                 />
               </div>

@@ -9,7 +9,6 @@ import './HomePage.css'
 interface Settings {
   concertName?: string
   welcomeMessage?: string
-  concertDate?: string
   concertVenue?: string
   adultPrice?: number
   studentPrice?: number
@@ -65,14 +64,47 @@ function HomePage() {
     })
   }, [isOnline])
 
-  // Format show times for display
-  const formatShowTimes = () => {
-    if (shows.length === 0) {
-      // Don't show default times if backend is offline - show nothing or loading state
-      return isOnline ? 'Inga tider definierade' : ''
+  // Format date for Swedish display (yyyy-MM-dd -> dd MMM yyyy)
+  const formatDate = (dateStr: string): string => {
+    try {
+      const date = new Date(dateStr + 'T00:00:00') // Add time to avoid timezone issues
+      const months = ['jan', 'feb', 'mar', 'apr', 'maj', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec']
+      const day = date.getDate()
+      const month = months[date.getMonth()]
+      const year = date.getFullYear()
+      return `${day} ${month} ${year}`
+    } catch {
+      return dateStr // Fallback to original if parsing fails
     }
-    return shows.map(show => `${show.startTime}-${show.endTime}`).join(' eller ')
   }
+
+  // Group shows by date and format for display
+  const formatShowsByDate = () => {
+    if (shows.length === 0) {
+      return null
+    }
+
+    // Group shows by date
+    const showsByDate = shows.reduce((acc, show) => {
+      const date = show.date
+      if (!acc[date]) {
+        acc[date] = []
+      }
+      acc[date].push(show)
+      return acc
+    }, {} as Record<string, Show[]>)
+
+    // Sort dates
+    const sortedDates = Object.keys(showsByDate).sort()
+
+    return sortedDates.map(date => {
+      const dateShows = showsByDate[date]
+      const times = dateShows.map(s => `${s.startTime}-${s.endTime}`).join(', ')
+      return { date, formattedDate: formatDate(date), times, shows: dateShows }
+    })
+  }
+
+  const showsByDate = formatShowsByDate()
 
   return (
     <Layout>
@@ -127,9 +159,20 @@ function HomePage() {
                 <div className="concert-info-compact">
                   <div className="concert-details">
                     <h3>Konsertinformation</h3>
-                    {settings.concertDate && <p><strong>Datum:</strong> {settings.concertDate}</p>}
                     {settings.concertVenue && <p><strong>Plats:</strong> {settings.concertVenue}</p>}
-                    {formatShowTimes() && <p><strong>Tider:</strong> {formatShowTimes()}</p>}
+                    {showsByDate && showsByDate.length > 0 && (
+                      <div className="shows-by-date">
+                        {showsByDate.map((group) => (
+                          <div key={group.date} className="show-date-group">
+                            <p><strong>Datum:</strong> {group.formattedDate}</p>
+                            <p><strong>Tider:</strong> {group.times}</p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {(!showsByDate || showsByDate.length === 0) && isOnline && (
+                      <p className="no-shows-message">Inga föreställningar definierade ännu.</p>
+                    )}
                   </div>
                   
                   <div className="pricing-compact">

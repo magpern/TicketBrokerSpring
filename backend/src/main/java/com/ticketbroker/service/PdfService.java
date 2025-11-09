@@ -16,7 +16,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Base64;
+import java.util.Objects;
 
 @Service
 public class PdfService {
@@ -31,7 +33,11 @@ public class PdfService {
     public byte[] generateTicketsPdf(Booking booking) throws IOException {
         try (PDDocument document = new PDDocument()) {
             String concertName = settingsService.getValue("concert_name", "Klasskonsert 24C");
-            String concertDate = settingsService.getValue("concert_date", "29/1 2026");
+            // Get date from the show instead of settings
+            LocalDate showDate = Objects.requireNonNull(booking.getShow(), "Booking show cannot be null")
+                    .getDate();
+            Objects.requireNonNull(showDate, "Show date cannot be null");
+            String concertDate = formatDateForSwedish(showDate);
             String concertVenue = settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm");
             
             // Get logo if available
@@ -55,6 +61,11 @@ public class PdfService {
             document.save(baos);
             return baos.toByteArray();
         }
+    }
+    
+    private String formatDateForSwedish(LocalDate date) {
+        String[] months = {"jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec"};
+        return String.format("%d %s %d", date.getDayOfMonth(), months[date.getMonthValue() - 1], date.getYear());
     }
     
     private void drawTicket(PDDocument document, PDPageContentStream contentStream, PDPage page, 

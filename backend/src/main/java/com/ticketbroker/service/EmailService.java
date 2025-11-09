@@ -1,6 +1,7 @@
 package com.ticketbroker.service;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.Objects;
 
 import org.springframework.core.io.ByteArrayResource;
@@ -51,8 +52,11 @@ public class EmailService {
     public void sendPaymentConfirmed(Booking booking, byte[] pdfData) throws MessagingException {
         String concertName = Objects.requireNonNull(settingsService.getValue("concert_name", "Klasskonsert 24C"),
                 "Concert name cannot be null");
-        String concertDate = Objects.requireNonNull(settingsService.getValue("concert_date", "29/1 2026"),
-                "Concert date cannot be null");
+        // Get date from the show instead of settings
+        LocalDate showDate = Objects.requireNonNull(booking.getShow(), "Booking show cannot be null")
+                .getDate();
+        Objects.requireNonNull(showDate, "Show date cannot be null");
+        String concertDate = formatDateForSwedish(showDate);
         String concertVenue = Objects.requireNonNull(
                 settingsService.getValue("concert_venue", "Aulan på Rytmus Stockholm"), "Concert venue cannot be null");
         String contactEmail = Objects.requireNonNull(settingsService.getValue("contact_email", "admin@example.com"),
@@ -85,6 +89,11 @@ public class EmailService {
                 new ByteArrayResource(pdfData));
 
         mailSender.send(message);
+    }
+
+    private String formatDateForSwedish(LocalDate date) {
+        String[] months = { "jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec" };
+        return String.format("%d %s %d", date.getDayOfMonth(), months[date.getMonthValue() - 1], date.getYear());
     }
 
     public void sendAdminNotification(Booking booking) throws MessagingException {
@@ -152,7 +161,7 @@ public class EmailService {
                 booking.getFullName(),
                 booking.getEmail(),
                 booking.getPhone(),
-                booking.getShow().getDate() != null ? booking.getShow().getDate().toString() : "",
+                booking.getShow().getDate() != null ? formatDateForSwedish(booking.getShow().getDate()) : "",
                 booking.getShow().getStartTime(),
                 booking.getShow().getEndTime(),
                 booking.getAdultTickets(),
