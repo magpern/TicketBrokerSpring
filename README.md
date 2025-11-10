@@ -12,8 +12,8 @@ Modern ticket booking system built with Spring Boot (Java) backend and React (Ty
 
 ## Prerequisites
 
-- Java 17+
-- Node.js 18+
+- Java 22+
+- Node.js 20+
 - Docker and Docker Compose
 - Maven 3.9+
 
