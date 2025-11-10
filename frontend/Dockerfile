@@ -1,14 +1,15 @@
 # Multi-stage build for React frontend
 
 # Stage 1: Build
-FROM node:20-alpine AS build
+# Using node:20-slim instead of alpine for better multi-arch support
+FROM node:20-slim AS build
 WORKDIR /app
 
 # Copy package files
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN npm ci --no-audit --no-fund
 
 # Copy source code
 COPY . .
