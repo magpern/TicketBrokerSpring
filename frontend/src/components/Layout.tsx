@@ -1,9 +1,8 @@
-import { useEffect, useState, ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Link } from 'react-router-dom'
 import { useBackendStatus } from '../contexts/BackendStatusContext'
-import LanguageSwitcher from './LanguageSwitcher'
 import api from '../services/api'
+import LanguageSwitcher from './LanguageSwitcher'
 
 interface LayoutProps {
   children: ReactNode
