@@ -86,7 +86,6 @@
     "bookingSummary": "Your booking:",
     "selectAtLeastOne": "Select at least one ticket",
     "bookingFailed": "Booking failed. Please try again.",
-    "gdprConsent": "I consent that this information is saved for verification and deleted at the latest 1 month after the concert by Klasskonsertgruppen",
     "paymentReminder": "NOTE! You have reserved a seat only when you BOTH have reserved a ticket here on the website - and paid. Click on the link below to pay."
   },
   "bookingSuccess": {

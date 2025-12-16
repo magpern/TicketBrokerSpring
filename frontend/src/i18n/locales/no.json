@@ -86,7 +86,6 @@
     "bookingSummary": "Din bestilling:",
     "selectAtLeastOne": "Velg minst én billett",
     "bookingFailed": "Bestillingen mislyktes. Prøv igjen.",
-    "gdprConsent": "Jeg godkjenner at denne informasjonen lagres for verifisering og slettes senest 1 måned etter konserten hos Klasskonsertgruppen",
     "paymentReminder": "OBS! Du har reservert en plass først når du BÅDE har reservert en billett her på nettsiden - og betalt. Klikk på lenken nedenfor for å betale."
   },
   "bookingSuccess": {

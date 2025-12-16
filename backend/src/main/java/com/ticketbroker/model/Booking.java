@@ -57,9 +57,6 @@ public class Booking {
     
     private LocalDateTime swishPaymentInitiatedAt;
     
-    @Column(nullable = false)
-    private Boolean gdprConsent = false;
-    
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
     
