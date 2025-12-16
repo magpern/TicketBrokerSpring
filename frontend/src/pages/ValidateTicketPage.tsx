@@ -37,8 +37,11 @@ function ValidateTicketPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const videoTrackRef = useRef<MediaStreamTrack | null>(null);
   const overlayTimeoutRef = useRef<number | null>(null);
+  const focusIntervalRef = useRef<number | null>(null);
   const [isScanning, setIsScanning] = useState(false);
+  const [focusFeedback, setFocusFeedback] = useState(false);
 
   useEffect(() => {
     api.get("/public/shows").then((response) => {
@@ -61,47 +64,204 @@ function ValidateTicketPage() {
 
   const startCamera = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
+      // Request autofocus in initial constraints
+      // Note: focusMode is not in standard TypeScript types but is supported by browsers
+      const videoConstraints = {
+        facingMode: "environment",
+        width: { ideal: 1280, max: 1920 },
+        height: { ideal: 720, max: 1080 },
+        frameRate: { ideal: 30, max: 60 },
+        // Request autofocus - try continuous first, fallback to manual
+        focusMode: "continuous",
+      } as MediaTrackConstraints;
+
+      let stream: MediaStream;
+      try {
+        // Try with autofocus in initial request
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: videoConstraints,
+        });
+      } catch (focusError) {
+        // If that fails, try without focusMode and apply it later
+        console.log("Initial request with focusMode failed, retrying without:", focusError);
+        const fallbackConstraints: MediaTrackConstraints = {
           facingMode: "environment",
           width: { ideal: 1280, max: 1920 },
           height: { ideal: 720, max: 1080 },
           frameRate: { ideal: 30, max: 60 },
-        } as MediaTrackConstraints,
-      });
+        };
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: fallbackConstraints,
+        });
+      }
 
       streamRef.current = stream;
+      const videoTrack = stream.getVideoTracks()[0];
+      videoTrackRef.current = videoTrack;
+      
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
         videoRef.current.play();
 
-        // Try to apply autofocus constraints if supported
-        const videoTrack = stream.getVideoTracks()[0];
-        if (videoTrack && "getCapabilities" in videoTrack) {
+        // Apply autofocus constraints after stream starts (more reliable)
+        if (videoTrack) {
+          // Wait a bit for the stream to stabilize
+          await new Promise(resolve => setTimeout(resolve, 500));
+          
+          console.log("Setting up autofocus for video track:", {
+            id: videoTrack.id,
+            label: videoTrack.label,
+            readyState: videoTrack.readyState,
+          });
+          
           try {
-            // Use type assertion for autofocus (not in standard TypeScript types)
-            const capabilities = videoTrack.getCapabilities() as Record<
+            // Check capabilities
+            const capabilities = videoTrack.getCapabilities?.() as Record<
               string,
               unknown
-            >;
-            if (
-              capabilities?.focusMode &&
-              Array.isArray(capabilities.focusMode) &&
-              capabilities.focusMode.includes("continuous")
-            ) {
-              // Apply autofocus constraint (using unknown cast for advanced properties)
-              videoTrack
-                .applyConstraints({
-                  advanced: [
-                    { focusMode: "continuous" },
-                  ] as unknown as MediaTrackConstraintSet[],
-                } as MediaTrackConstraints)
-                .catch((err: unknown) => {
-                  console.log("Autofocus not supported:", err);
-                });
+            > | undefined;
+
+            console.log("Video track capabilities:", JSON.stringify(capabilities, null, 2));
+
+            let focusEnabled = false;
+            
+            // Try ImageCapture API first (works better on Android/Samsung)
+            if ('ImageCapture' in window) {
+              try {
+                const imageCapture = new (window as any).ImageCapture(videoTrack);
+                if (imageCapture.setOptions) {
+                  await imageCapture.setOptions({ focusMode: 'continuous' });
+                  console.log("ImageCapture continuous autofocus enabled");
+                  focusEnabled = true;
+                }
+              } catch (imageCaptureError) {
+                console.log("ImageCapture API not available or failed:", imageCaptureError);
+              }
             }
+
+            if (capabilities?.focusMode) {
+              const focusModes = capabilities.focusMode as string[];
+              
+              // Try continuous autofocus first (best for QR scanning)
+              if (focusModes.includes("continuous")) {
+                try {
+                  await videoTrack.applyConstraints({
+                    focusMode: "continuous" as any,
+                  } as MediaTrackConstraints);
+                  console.log("Continuous autofocus enabled");
+                  focusEnabled = true;
+                  
+                  // Some devices need periodic focus triggers even in continuous mode
+                  // Trigger focus every 3 seconds to ensure it stays active
+                  focusIntervalRef.current = window.setInterval(() => {
+                    if (videoTrack.readyState === "live") {
+                      videoTrack.applyConstraints({
+                        focusMode: "continuous" as any,
+                      } as MediaTrackConstraints).catch(() => {
+                        // Ignore errors
+                      });
+                    } else {
+                      if (focusIntervalRef.current) {
+                        clearInterval(focusIntervalRef.current);
+                        focusIntervalRef.current = null;
+                      }
+                    }
+                  }, 3000); // Trigger every 3 seconds
+                } catch (err) {
+                  console.log("Failed to enable continuous autofocus:", err);
+                }
+              } 
+              // Fallback to single-shot autofocus
+              if (!focusEnabled && focusModes.includes("single-shot")) {
+                try {
+                  await videoTrack.applyConstraints({
+                    focusMode: "single-shot" as any,
+                  } as MediaTrackConstraints);
+                  console.log("Single-shot autofocus enabled");
+                  focusEnabled = true;
+                  
+                  // Trigger periodic refocus for better QR scanning
+                  focusIntervalRef.current = window.setInterval(() => {
+                    if (videoTrack.readyState === "live") {
+                      videoTrack.applyConstraints({
+                        focusMode: "single-shot" as any,
+                      } as MediaTrackConstraints).catch(() => {
+                        // Ignore errors
+                      });
+                    } else {
+                      if (focusIntervalRef.current) {
+                        clearInterval(focusIntervalRef.current);
+                        focusIntervalRef.current = null;
+                      }
+                    }
+                  }, 2000); // Refocus every 2 seconds
+                } catch (err) {
+                  console.log("Failed to enable single-shot autofocus:", err);
+                }
+              }
+              // Try manual focus with auto
+              if (!focusEnabled && focusModes.includes("manual")) {
+                try {
+                  const settings = videoTrack.getSettings?.() as Record<
+                    string,
+                    unknown
+                  > | undefined;
+                  if (settings?.focusDistance !== undefined) {
+                    // Some devices support auto focus through manual mode
+                    await videoTrack.applyConstraints({
+                      focusMode: "manual" as any,
+                      focusDistance: 0 as any, // 0 often means "auto" on some devices
+                    } as MediaTrackConstraints);
+                    console.log("Manual autofocus attempted");
+                    focusEnabled = true;
+                  }
+                } catch (err) {
+                  console.log("Failed to enable manual autofocus:", err);
+                }
+              }
+            }
+            
+            // Even if capabilities don't show focusMode, try to enable it anyway
+            // Some devices support it but don't report it properly
+            if (!focusEnabled) {
+              console.log("Capabilities don't show focusMode, trying anyway...");
+              const focusModesToTry = ["continuous", "single-shot", "manual"];
+              for (const mode of focusModesToTry) {
+                try {
+                  await videoTrack.applyConstraints({
+                    focusMode: mode as any,
+                  } as MediaTrackConstraints);
+                  console.log(`Successfully enabled ${mode} autofocus (not in capabilities)`);
+                  focusEnabled = true;
+                  
+                  // If single-shot or manual, set up periodic refocus
+                  if (mode === "single-shot" || mode === "manual") {
+                    focusIntervalRef.current = window.setInterval(() => {
+                      if (videoTrack.readyState === "live") {
+                        videoTrack.applyConstraints({
+                          focusMode: mode as any,
+                        } as MediaTrackConstraints).catch((err) => {
+                          console.log("Periodic focus failed:", err);
+                        });
+                      } else {
+                        if (focusIntervalRef.current) {
+                          clearInterval(focusIntervalRef.current);
+                          focusIntervalRef.current = null;
+                        }
+                      }
+                    }, 2000);
+                  }
+                  break;
+                } catch (err) {
+                  console.log(`Failed to enable ${mode} autofocus:`, err);
+                  // Try next mode
+                }
+              }
+            }
+            
+            console.log("Autofocus setup complete, enabled:", focusEnabled);
           } catch (err) {
-            console.log("Could not check/apply autofocus:", err);
+            console.error("Could not apply autofocus:", err);
           }
         }
       }
@@ -114,6 +274,14 @@ function ValidateTicketPage() {
   };
 
   const stopCamera = () => {
+    // Clear focus interval if running
+    if (focusIntervalRef.current) {
+      clearInterval(focusIntervalRef.current);
+      focusIntervalRef.current = null;
+    }
+
+    videoTrackRef.current = null;
+
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -137,6 +305,125 @@ function ValidateTicketPage() {
     }
 
     setIsScanning(false);
+  };
+
+  // Manual focus trigger (tap-to-focus)
+  const triggerFocus = async () => {
+    setFocusFeedback(true);
+    
+    const videoTrack = videoTrackRef.current;
+    const video = videoRef.current;
+    const stream = streamRef.current;
+    
+    console.log("Trigger focus called", {
+      hasVideoTrack: !!videoTrack,
+      trackReadyState: videoTrack?.readyState,
+      hasVideo: !!video,
+      hasStream: !!stream,
+    });
+
+    if (!videoTrack || videoTrack.readyState !== "live") {
+      console.log("Cannot focus: videoTrack not available or not live");
+      setTimeout(() => setFocusFeedback(false), 1000);
+      return;
+    }
+
+    if (!video) {
+      console.log("Cannot focus: video element not available");
+      setTimeout(() => setFocusFeedback(false), 1000);
+      return;
+    }
+
+    try {
+      // Calculate center point of interest (for QR codes, center is usually best)
+      const pointOfInterest = { x: 0.5, y: 0.5 };
+      
+      // Method 1: Try ImageCapture API with focus point
+      if ('ImageCapture' in window) {
+        try {
+          const imageCapture = new (window as any).ImageCapture(videoTrack);
+          
+          // Set focus point to center
+          if (imageCapture.setFocusPoint) {
+            await imageCapture.setFocusPoint(pointOfInterest);
+            console.log("ImageCapture: Focus point set to center");
+          }
+          
+          // Try to trigger focus with single-shot
+          if (imageCapture.setOptions) {
+            await imageCapture.setOptions({ 
+              focusMode: 'single-shot',
+              pointsOfInterest: [pointOfInterest]
+            });
+            console.log("ImageCapture: Focus triggered");
+            // Wait a bit for focus to settle
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+        } catch (imageCaptureError) {
+          console.log("ImageCapture API failed:", imageCaptureError);
+        }
+      }
+
+      // Method 2: Try applying constraints with point of interest
+      try {
+        const constraints: any = {
+          focusMode: "single-shot",
+          pointsOfInterest: [pointOfInterest],
+        };
+        
+        await videoTrack.applyConstraints(constraints as MediaTrackConstraints);
+        console.log("Constraints: Focus applied with point of interest");
+        await new Promise(resolve => setTimeout(resolve, 200));
+      } catch (err) {
+        console.log("Constraints with pointOfInterest failed:", err);
+      }
+
+      // Method 3: Try cycling through focus distances (for manual mode devices)
+      try {
+        const capabilities = videoTrack.getCapabilities?.() as Record<string, unknown> | undefined;
+        if (capabilities?.focusDistance) {
+          const focusDistance = capabilities.focusDistance as { min: number; max: number; step: number };
+          // Cycle through focus distances to trigger refocus
+          const distances = [focusDistance.min, (focusDistance.min + focusDistance.max) / 2, focusDistance.max, focusDistance.min];
+          for (const distance of distances) {
+            try {
+              await videoTrack.applyConstraints({
+                focusMode: "manual" as any,
+                focusDistance: distance as any,
+              } as MediaTrackConstraints);
+              await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (err) {
+              // Continue
+            }
+          }
+          console.log("Cycled through focus distances");
+        }
+      } catch (cycleError) {
+        console.log("Focus distance cycling failed:", cycleError);
+      }
+
+      // Method 4: Try multiple constraint applications in sequence
+      const focusModes = ["single-shot", "continuous"];
+      for (const mode of focusModes) {
+        try {
+          await videoTrack.applyConstraints({
+            focusMode: mode as any,
+          } as MediaTrackConstraints);
+          console.log(`Applied ${mode} focus mode`);
+          await new Promise(resolve => setTimeout(resolve, 100));
+        } catch (err) {
+          console.log(`Failed to apply ${mode}:`, err);
+        }
+      }
+      
+      // Visual feedback
+      setTimeout(() => {
+        setFocusFeedback(false);
+      }, 1000);
+    } catch (error) {
+      console.error("Manual focus trigger failed:", error);
+      setFocusFeedback(false);
+    }
   };
 
   // Play beep sound
@@ -442,8 +729,45 @@ function ValidateTicketPage() {
 
         <div className="camera-container">
           {mode === "camera" && (
-            <div className="camera-section">
-              <video ref={videoRef} autoPlay muted playsInline></video>
+            <div 
+              className="camera-section"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Only trigger if clicking directly on camera section, not on button
+                if ((e.target as HTMLElement).closest('.scan-button-container')) {
+                  return;
+                }
+                triggerFocus();
+              }}
+              onTouchStart={(e) => {
+                e.stopPropagation();
+                // Only trigger if touching directly on camera section, not on button
+                if ((e.target as HTMLElement).closest('.scan-button-container')) {
+                  return;
+                }
+                e.preventDefault();
+                triggerFocus();
+              }}
+            >
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                muted 
+                playsInline
+                onClick={(e) => {
+                  e.stopPropagation();
+                  triggerFocus();
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                  e.preventDefault();
+                  triggerFocus();
+                }}
+                style={{ cursor: "pointer", pointerEvents: "auto", width: "100%", height: "100%" }}
+              ></video>
+              {focusFeedback && (
+                <div className="focus-indicator">🔍 Fokuserar...</div>
+              )}
               <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
 
             {validOverlay && (
@@ -466,7 +790,10 @@ function ValidateTicketPage() {
               {/* Manual scan button */}
               <div className="scan-button-container">
                 <button
-                  onClick={scanQRCode}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    scanQRCode();
+                  }}
                   disabled={isScanning || loading}
                   className="scan-qr-button"
                 >

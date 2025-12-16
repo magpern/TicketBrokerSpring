@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Background -->
+  <rect width="512" height="512" fill="#22c55e" rx="80"/>
+  
+  <!-- Ticket icon -->
+  <g transform="translate(128, 128)">
+    <!-- Ticket shape -->
+    <path d="M256 64C149.1 64 64 149.1 64 256s85.1 192 192 192c17.7 0 32-14.3 32-32V96c0-17.7-14.3-32-32-32z" fill="white" opacity="0.9"/>
+    <rect x="80" y="80" width="352" height="352" rx="20" fill="white"/>
+    
+    <!-- Checkmark -->
+    <path d="M200 240l60 60 100-100" stroke="#22c55e" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(56, 56)"/>
+  </g>
+</svg>
+
