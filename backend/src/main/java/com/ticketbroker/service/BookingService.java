@@ -57,6 +57,11 @@ public class BookingService {
 
         Booking saved = bookingRepository.save(booking);
 
+        // Decrease available tickets immediately when booking is created (RESERVED)
+        // This prevents overbooking when multiple customers book before admin confirms
+        show.setAvailableTickets(Math.max(0, show.getAvailableTickets() - saved.getTotalTickets()));
+        showRepository.save(show);
+
         // Log booking creation
         auditService.logBookingCreated(saved);
 
@@ -127,8 +132,12 @@ public class BookingService {
 
     @Transactional
     public void updateShowAvailability(Show show) {
-        List<Booking> confirmedBookings = bookingRepository.findConfirmedBookingsByShowId(show.getId());
-        int totalBooked = confirmedBookings.stream()
+        // Count both RESERVED and CONFIRMED bookings to ensure consistency
+        // RESERVED bookings already decreased available tickets when created
+        // CONFIRMED bookings are the same bookings that were RESERVED, so we count all active bookings
+        List<Booking> activeBookings = bookingRepository.findByShowId(show.getId());
+        int totalBooked = activeBookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.RESERVED || b.getStatus() == BookingStatus.CONFIRMED)
                 .mapToInt(b -> b.getAdultTickets() + b.getStudentTickets())
                 .sum();
         show.setAvailableTickets(Math.max(0, show.getTotalTickets() - totalBooked));
@@ -138,6 +147,17 @@ public class BookingService {
     @Transactional
     public void deleteBooking(Long bookingId) {
         Objects.requireNonNull(bookingId, "Booking ID cannot be null");
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+        Show show = booking.getShow();
+        
+        // Increase available tickets back when booking is deleted
+        // This works for both RESERVED and CONFIRMED bookings
+        if (show != null && (booking.getStatus() == BookingStatus.RESERVED || booking.getStatus() == BookingStatus.CONFIRMED)) {
+            show.setAvailableTickets(Math.min(show.getTotalTickets(), show.getAvailableTickets() + booking.getTotalTickets()));
+            showRepository.save(show);
+        }
+        
         bookingRepository.deleteById(bookingId);
     }
 
@@ -164,6 +184,8 @@ public class BookingService {
             }
 
             // Update show availability
+            // When changing from CONFIRMED to RESERVED, tickets are still "booked" so available tickets remain decreased
+            // The updateShowAvailability will recalculate correctly
             updateShowAvailability(booking.getShow());
         }
 
@@ -172,7 +194,8 @@ public class BookingService {
             booking.setConfirmedAt(LocalDateTime.now());
             // Generate tickets
             ticketService.generateTicketsForBooking(booking);
-            // Update show availability
+            // Available tickets already decreased when booking was created (RESERVED)
+            // No need to decrease again, just ensure consistency
             updateShowAvailability(booking.getShow());
             auditService.logPaymentConfirmed(booking, adminUser);
         }

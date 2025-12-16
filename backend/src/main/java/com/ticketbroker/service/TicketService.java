@@ -1,10 +1,13 @@
 package com.ticketbroker.service;
 
 import com.ticketbroker.model.Booking;
+import com.ticketbroker.model.BookingStatus;
 import com.ticketbroker.model.Buyer;
+import com.ticketbroker.model.Show;
 import com.ticketbroker.model.Ticket;
 import com.ticketbroker.repository.BookingRepository;
 import com.ticketbroker.repository.BuyerRepository;
+import com.ticketbroker.repository.ShowRepository;
 import com.ticketbroker.repository.TicketRepository;
 import com.ticketbroker.util.TicketReferenceGenerator;
 import org.springframework.stereotype.Service;
@@ -20,15 +23,18 @@ public class TicketService {
     private final TicketRepository ticketRepository;
     private final BuyerRepository buyerRepository;
     private final BookingRepository bookingRepository;
+    private final ShowRepository showRepository;
     private final TicketReferenceGenerator ticketReferenceGenerator;
     private final AuditService auditService;
     
     public TicketService(TicketRepository ticketRepository, BuyerRepository buyerRepository,
-                       BookingRepository bookingRepository, TicketReferenceGenerator ticketReferenceGenerator,
+                       BookingRepository bookingRepository, ShowRepository showRepository,
+                       TicketReferenceGenerator ticketReferenceGenerator,
                        AuditService auditService) {
         this.ticketRepository = ticketRepository;
         this.buyerRepository = buyerRepository;
         this.bookingRepository = bookingRepository;
+        this.showRepository = showRepository;
         this.ticketReferenceGenerator = ticketReferenceGenerator;
         this.auditService = auditService;
     }
@@ -169,6 +175,28 @@ public class TicketService {
         
         // Delete ticket
         ticketRepository.delete(ticket);
+        
+        // Update show availability if booking is confirmed or reserved
+        // This ensures consistency after ticket deletion
+        Show show = booking.getShow();
+        if (show != null && (booking.getStatus() == BookingStatus.CONFIRMED || booking.getStatus() == BookingStatus.RESERVED)) {
+            updateShowAvailability(show);
+        }
+    }
+    
+    @Transactional
+    private void updateShowAvailability(Show show) {
+        // Count both RESERVED and CONFIRMED bookings to ensure consistency
+        // RESERVED bookings already decreased available tickets when created
+        // CONFIRMED bookings are the same bookings that were RESERVED, so we count all active bookings
+        List<Booking> activeBookings = bookingRepository.findByShowId(show.getId());
+        int totalBooked = activeBookings.stream()
+                .filter(b -> b.getStatus() == BookingStatus.RESERVED 
+                          || b.getStatus() == BookingStatus.CONFIRMED)
+                .mapToInt(b -> b.getAdultTickets() + b.getStudentTickets())
+                .sum();
+        show.setAvailableTickets(Math.max(0, show.getTotalTickets() - totalBooked));
+        showRepository.save(show);
     }
 }
 

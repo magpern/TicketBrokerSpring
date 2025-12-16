@@ -86,9 +86,27 @@ function AdminDashboardPage() {
 
   const handleConfirmPayment = async (bookingId: number) => {
     try {
-      await adminApi.post(`/bookings/${bookingId}/confirm-payment`)
+      const response = await adminApi.post(`/bookings/${bookingId}/confirm-payment`)
+      const updatedBooking = response.data
+      
+      // Update the booking in state without reloading all bookings
+      setBookings(prevBookings => 
+        prevBookings.map(booking => 
+          booking.id === bookingId ? updatedBooking : booking
+        )
+      )
+      
+      // Update in grouped bookings
+      setBookingsByShow(prevGroups =>
+        prevGroups.map(group => ({
+          ...group,
+          bookings: group.bookings.map(booking =>
+            booking.id === bookingId ? updatedBooking : booking
+          )
+        }))
+      )
+      
       setMessage({ type: 'success', text: 'Betalning bekräftad!' })
-      loadBookings()
     } catch (error) {
       console.error('Failed to confirm payment:', error)
       setMessage({ type: 'error', text: 'Kunde inte bekräfta betalning' })
