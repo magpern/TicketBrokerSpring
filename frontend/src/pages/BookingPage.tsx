@@ -28,7 +28,6 @@ function BookingPage() {
     phone: '',
     adultTickets: 0,
     studentTickets: 0,
-    gdprConsent: false,
   })
 
   useEffect(() => {
@@ -354,20 +353,6 @@ function BookingPage() {
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                     />
-                  </div>
-                  
-                  <div className="form-group checkbox-group">
-                    <input
-                      type="checkbox"
-                      id="gdpr_consent"
-                      name="gdpr_consent"
-                      required
-                      checked={formData.gdprConsent}
-                      onChange={(e) => setFormData({ ...formData, gdprConsent: e.target.checked })}
-                    />
-                    <label htmlFor="gdpr_consent">
-                      {t('booking.gdprConsent')} *
-                    </label>
                   </div>
                 </div>
                 

@@ -85,8 +85,8 @@ public class PublicApiController {
         response.put("isInitialized", isInitialized);
         response.put("hasShows", hasShows);
         response.put("hasClassPhoto", hasClassPhoto);
-        response.put("message", isInitialized ? null : 
-            "Systemet är under initialisering. Bokning kommer att vara tillgänglig när all konfiguration är klar.");
+        response.put("message", isInitialized ? null
+                : "Systemet är under initialisering. Bokning kommer att vara tillgänglig när all konfiguration är klar.");
 
         return ResponseEntity.ok(response);
     }
@@ -119,7 +119,6 @@ public class PublicApiController {
         booking.setPhone(request.getPhone());
         booking.setAdultTickets(request.getAdultTickets());
         booking.setStudentTickets(request.getStudentTickets());
-        booking.setGdprConsent(request.getGdprConsent());
 
         // Calculate total amount
         int adultPrice = Integer.parseInt(settingsService.getValue("adult_ticket_price", "200"));

@@ -35,7 +35,7 @@
         {
             "label": "mvn: compile",
             "type": "shell",
-            "command": "mvn compile",
+            "command": "mvn compile -s temp-settings.xml",
             "options": {
                 "cwd": "${workspaceFolder}/backend"
             },

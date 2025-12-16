@@ -22,7 +22,6 @@ export function validateBookingForm(data: {
   lastName: string
   email: string
   phone: string
-  gdprConsent: boolean
 }): { isValid: boolean; errors: Record<string, string> } {
   const errors: Record<string, string> = {}
 
@@ -44,10 +43,6 @@ export function validateBookingForm(data: {
     errors.phone = 'Telefonnummer är obligatoriskt'
   } else if (!validatePhone(data.phone)) {
     errors.phone = 'Ogiltigt telefonnummer'
-  }
-
-  if (!data.gdprConsent) {
-    errors.gdprConsent = 'Du måste godkänna GDPR-villkoren'
   }
 
   return {
