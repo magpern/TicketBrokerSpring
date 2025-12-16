@@ -141,7 +141,8 @@ function AdminSettingsPage() {
       setClassPhotoFile(null)
       setQrLogoFile(null)
     } catch (error: any) {
-      if (error.response?.status === 401) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        // Unauthorized or Forbidden - redirect to login
         navigate('/admin/login')
       } else {
         console.error('Failed to save settings:', error)

@@ -33,10 +33,13 @@ adminApi.interceptors.request.use(
 adminApi.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      // Unauthorized - clear auth and redirect to login
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Unauthorized or Forbidden - clear auth and redirect to login
       sessionStorage.removeItem('adminAuthToken')
-      window.location.href = '/admin/login'
+      // Only redirect if we're not already on the login page
+      if (!window.location.pathname.includes('/admin/login')) {
+        window.location.href = '/admin/login'
+      }
     }
     return Promise.reject(error)
   }
