@@ -156,7 +156,7 @@ describe('Layout Component', () => {
     expect(screen.queryByText('Test Content')).not.toBeInTheDocument()
   })
 
-  it('should show offline message when backend is offline', () => {
+  it('should show offline banner but still render children when backend is offline', () => {
     mockUseBackendStatus.mockReturnValue({
       isOnline: false,
       isChecking: false,
@@ -171,9 +171,11 @@ describe('Layout Component', () => {
       </BrowserRouter>
     )
 
+    // Should show the warning banner
     expect(screen.getByText(/Backend är inte tillgänglig/i)).toBeInTheDocument()
-    expect(screen.getByText(/Systemet är inte tillgängligt/i)).toBeInTheDocument()
-    expect(screen.queryByText('Test Content')).not.toBeInTheDocument()
+    expect(screen.getByText(/Systemet kan inte ansluta till servern/i)).toBeInTheDocument()
+    // Children should still be rendered (non-blocking UI)
+    expect(screen.getByText('Test Content')).toBeInTheDocument()
   })
 })
 
