@@ -157,7 +157,7 @@ class BookingServiceTest {
                 createTicket(2L, false)
         );
         when(ticketService.getTicketsForBooking(testBooking)).thenReturn(tickets);
-        when(bookingRepository.findConfirmedBookingsByShowId(1L)).thenReturn(new ArrayList<>());
+        when(bookingRepository.findByShowId(1L)).thenReturn(new ArrayList<>());
         when(showRepository.save(any(Show.class))).thenReturn(testShow);
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
 
@@ -193,7 +193,7 @@ class BookingServiceTest {
     void updateBookingStatus_ShouldGenerateTickets_WhenChangingToConfirmed() {
         // Given
         testBooking.setStatus(BookingStatus.RESERVED);
-        when(bookingRepository.findConfirmedBookingsByShowId(1L)).thenReturn(new ArrayList<>());
+        when(bookingRepository.findByShowId(1L)).thenReturn(new ArrayList<>());
         when(showRepository.save(any(Show.class))).thenReturn(testShow);
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
         when(ticketService.generateTicketsForBooking(any(Booking.class))).thenReturn(new ArrayList<>());
@@ -214,13 +214,15 @@ class BookingServiceTest {
         // Given
         testShow.setTotalTickets(100);
         Booking booking1 = new Booking();
+        booking1.setStatus(BookingStatus.CONFIRMED);
         booking1.setAdultTickets(2);
         booking1.setStudentTickets(1);
         Booking booking2 = new Booking();
+        booking2.setStatus(BookingStatus.CONFIRMED);
         booking2.setAdultTickets(1);
         booking2.setStudentTickets(2);
-        List<Booking> confirmedBookings = Arrays.asList(booking1, booking2);
-        when(bookingRepository.findConfirmedBookingsByShowId(1L)).thenReturn(confirmedBookings);
+        List<Booking> allBookings = Arrays.asList(booking1, booking2);
+        when(bookingRepository.findByShowId(1L)).thenReturn(allBookings);
         when(showRepository.save(any(Show.class))).thenReturn(testShow);
 
         // When
@@ -237,10 +239,11 @@ class BookingServiceTest {
         // Given
         testShow.setTotalTickets(10);
         Booking booking1 = new Booking();
+        booking1.setStatus(BookingStatus.CONFIRMED);
         booking1.setAdultTickets(5);
         booking1.setStudentTickets(6); // Total 11, but only 10 available
-        List<Booking> confirmedBookings = Arrays.asList(booking1);
-        when(bookingRepository.findConfirmedBookingsByShowId(1L)).thenReturn(confirmedBookings);
+        List<Booking> allBookings = Arrays.asList(booking1);
+        when(bookingRepository.findByShowId(1L)).thenReturn(allBookings);
         when(showRepository.save(any(Show.class))).thenReturn(testShow);
 
         // When
@@ -256,7 +259,7 @@ class BookingServiceTest {
         // Given
         testBooking.setStatus(BookingStatus.RESERVED);
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
-        when(bookingRepository.findConfirmedBookingsByShowId(1L)).thenReturn(new ArrayList<>());
+        when(bookingRepository.findByShowId(1L)).thenReturn(new ArrayList<>());
         when(showRepository.save(any(Show.class))).thenReturn(testShow);
         when(ticketService.generateTicketsForBooking(any(Booking.class))).thenReturn(new ArrayList<>());
 

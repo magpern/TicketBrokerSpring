@@ -7,6 +7,7 @@ import com.ticketbroker.model.Show;
 import com.ticketbroker.model.Ticket;
 import com.ticketbroker.repository.BookingRepository;
 import com.ticketbroker.repository.BuyerRepository;
+import com.ticketbroker.repository.ShowRepository;
 import com.ticketbroker.repository.TicketRepository;
 import com.ticketbroker.util.TicketReferenceGenerator;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -38,6 +40,9 @@ class TicketServiceTest {
 
     @Mock
     private BookingRepository bookingRepository;
+
+    @Mock
+    private ShowRepository showRepository;
 
     @Mock
     private TicketReferenceGenerator ticketReferenceGenerator;
@@ -256,8 +261,14 @@ class TicketServiceTest {
         testBooking.setAdultTickets(2);
         testBooking.setStudentTickets(1);
         testBooking.setTotalAmount(500);
+        testBooking.setStatus(BookingStatus.CONFIRMED);
+        Show testShow = new Show();
+        testShow.setId(1L);
+        testBooking.setShow(testShow);
 
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        when(bookingRepository.findByShowId(1L)).thenReturn(new ArrayList<>());
+        when(showRepository.save(any(Show.class))).thenReturn(testShow);
 
         // When
         ticketService.deleteTicket(ticket, "admin", "Test reason");
@@ -296,8 +307,14 @@ class TicketServiceTest {
         testBooking.setAdultTickets(2);
         testBooking.setStudentTickets(2);
         testBooking.setTotalAmount(600);
+        testBooking.setStatus(BookingStatus.CONFIRMED);
+        Show testShow = new Show();
+        testShow.setId(1L);
+        testBooking.setShow(testShow);
 
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
+        when(bookingRepository.findByShowId(1L)).thenReturn(new ArrayList<>());
+        when(showRepository.save(any(Show.class))).thenReturn(testShow);
 
         // When
         ticketService.deleteTicket(ticket, "admin", "reason");
