@@ -126,6 +126,9 @@
   justify-content: center;
   z-index: 10;
   animation: flashGreen 4s ease-in-out;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 @keyframes flashGreen {
@@ -148,6 +151,19 @@
 .valid-text {
   font-size: 1.5rem;
   font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.valid-hint {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  font-weight: 400;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
 }
 
 /* Manual Input Section */

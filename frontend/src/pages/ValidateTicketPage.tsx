@@ -37,6 +37,7 @@ function ValidateTicketPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const overlayTimeoutRef = useRef<number | null>(null);
   const [isScanning, setIsScanning] = useState(false);
 
   useEffect(() => {
@@ -326,9 +327,14 @@ function ValidateTicketPage() {
         triggerVibration([200, 100, 200]); // Success vibration pattern
         playBeep("success");
         setValidOverlay(true);
-        setTimeout(() => {
+        // Clear any existing timeout
+        if (overlayTimeoutRef.current) {
+          clearTimeout(overlayTimeoutRef.current);
+        }
+        overlayTimeoutRef.current = setTimeout(() => {
           setValidOverlay(false);
           setTicketReference("");
+          overlayTimeoutRef.current = null;
         }, 4000); // Show for 4 seconds instead of 2
       } else {
         // Invalid/used/wrong show
@@ -412,6 +418,15 @@ function ValidateTicketPage() {
     setTicketReference("");
   };
 
+  const dismissOverlay = () => {
+    if (overlayTimeoutRef.current) {
+      clearTimeout(overlayTimeoutRef.current);
+      overlayTimeoutRef.current = null;
+    }
+    setValidOverlay(false);
+    setTicketReference("");
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter") {
       validateTicket();
@@ -431,14 +446,22 @@ function ValidateTicketPage() {
               <video ref={videoRef} autoPlay muted playsInline></video>
               <canvas ref={canvasRef} style={{ display: "none" }}></canvas>
 
-              {validOverlay && (
-                <div className="valid-overlay">
-                  <div className="valid-content">
-                    <div className="valid-icon">✅</div>
-                    <div className="valid-text">Biljett Godkänd!</div>
-                  </div>
+            {validOverlay && (
+              <div 
+                className="valid-overlay"
+                onClick={dismissOverlay}
+                onTouchStart={dismissOverlay}
+                role="button"
+                tabIndex={0}
+                aria-label="Dismiss validation result"
+              >
+                <div className="valid-content">
+                  <div className="valid-icon">✅</div>
+                  <div className="valid-text">Biljett Godkänd!</div>
+                  <div className="valid-hint">Tryck för att fortsätta</div>
                 </div>
-              )}
+              </div>
+            )}
 
               {/* Manual scan button */}
               <div className="scan-button-container">
