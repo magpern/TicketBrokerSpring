@@ -4,13 +4,19 @@
 FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
-# Copy pom.xml and download dependencies
+# Copy pom.xml first for better Docker layer caching
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
 
-# Copy source code and build
+# Copy source code
 COPY src ./src
-RUN mvn clean package -DskipTests
+
+# Build with BuildKit cache mount for Maven dependencies
+# This caches ~/.m2/repository between builds, making subsequent builds MUCH faster
+# First build: downloads all dependencies (~2-3 min)
+# Subsequent builds: uses cached dependencies (~30 sec)
+# Works automatically with: docker buildx build (which you're already using for ARM64)
+RUN --mount=type=cache,target=/root/.m2 \
+    mvn clean package -DskipTests -B
 
 # Stage 2: Runtime
 # Using Debian-based image for multi-arch support (amd64 + arm64)

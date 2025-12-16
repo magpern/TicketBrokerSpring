@@ -1,0 +1,17 @@
+version: '3.8'
+
+# Local override: Use locally loaded images (from deploy-to-raspberry.ps1)
+# Usage: docker-compose -f docker-compose.infrastructure.yml -f docker-compose.app.yml -f docker-compose.app.local.yml up -d
+# Set IMAGE_TAG environment variable: export IMAGE_TAG=v1.0.5
+
+services:
+  ticketbroker-api:
+    # Override to use local image (no build, no pull from registry)
+    image: ticketbroker-backend:${IMAGE_TAG:-latest}
+    # Don't build - use the image that was loaded locally
+
+  ticketbroker-frontend:
+    # Override to use local image (no build, no pull from registry)
+    image: ticketbroker-frontend:${IMAGE_TAG:-latest}
+    # Don't build - use the image that was loaded locally
+

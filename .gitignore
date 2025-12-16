@@ -71,6 +71,9 @@ Thumbs.db
 temp/
 tmp/
 
+# Docker BuildKit cache
+.buildx-cache-*/
+
 # Backup files
 *.bak
 *.backup

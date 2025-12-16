@@ -134,19 +134,46 @@ function AdminSettingsPage() {
       }
 
       // Don't set Content-Type header - axios will set it automatically with boundary for FormData
-      await adminApi.post('/settings', formData)
+      console.log('Sending settings save request...')
+      const authToken = sessionStorage.getItem('adminAuthToken')
+      console.log('Auth token present:', !!authToken)
+      
+      if (!authToken) {
+        throw new Error('No authentication token found. Please log in again.')
+      }
+      
+      const response = await adminApi.post('/settings', formData)
+      console.log('Settings saved successfully:', response.status, response.data)
+      
       setMessage({ type: 'success', text: 'Inställningar sparade!' })
       // Reload settings to get updated image data
       loadSettings()
       setClassPhotoFile(null)
       setQrLogoFile(null)
     } catch (error: any) {
+      console.error('Failed to save settings:', error)
+      console.error('Error details:', {
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        data: error.response?.data,
+        message: error.message,
+        hasAuthToken: !!sessionStorage.getItem('adminAuthToken'),
+        requestConfig: {
+          url: error.config?.url,
+          method: error.config?.method,
+          headers: {
+            authorization: error.config?.headers?.Authorization ? 'present' : 'missing',
+            contentType: error.config?.headers?.['Content-Type']
+          }
+        }
+      })
+      
+      // For 401/403, the interceptor will redirect, but show a message first
       if (error.response?.status === 401 || error.response?.status === 403) {
-        // Unauthorized or Forbidden - redirect to login
-        navigate('/admin/login')
+        setMessage({ type: 'error', text: 'Autentisering misslyckades. Omdirigerar till inloggning...' })
+        // Don't prevent the redirect, but log what happened
       } else {
-        console.error('Failed to save settings:', error)
-        setMessage({ type: 'error', text: 'Kunde inte spara inställningar' })
+        setMessage({ type: 'error', text: `Kunde inte spara inställningar: ${error.response?.statusText || error.message}` })
       }
     } finally {
       setSaving(false)
