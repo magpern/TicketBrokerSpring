@@ -51,13 +51,10 @@ function Layout({ children }: LayoutProps) {
           <div className="backend-loading">
             <p>{t('layout.checkingConnection')}</p>
           </div>
-        ) : isOnline ? (
-          children
         ) : (
-          <div className="backend-offline-content">
-            <h2>{t('layout.systemUnavailable')}</h2>
-            <p>{t('layout.systemUnavailableMessage')}</p>
-          </div>
+          // Always show children - don't block UI even if backend appears offline
+          // Users can still interact and we'll show errors on actual API calls
+          children
         )}
       </main>
       <footer className="footer">
