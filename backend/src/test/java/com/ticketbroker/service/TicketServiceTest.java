@@ -110,6 +110,24 @@ class TicketServiceTest {
     }
 
     @Test
+    void generateTicketsForBooking_ShouldReturnExistingTickets_WhenAlreadyGenerated() {
+        // Given
+        Ticket existing = new Ticket();
+        existing.setTicketReference("ABC123-N01");
+        existing.setBooking(testBooking);
+        when(ticketRepository.findByBookingId(1L)).thenReturn(List.of(existing));
+
+        // When
+        List<Ticket> result = ticketService.generateTicketsForBooking(testBooking);
+
+        // Then
+        assertThat(result).containsExactly(existing);
+        verify(ticketRepository, never()).save(any());
+        verify(buyerRepository, never()).save(any());
+        verify(auditService, never()).logTicketGenerated(any(), any());
+    }
+
+    @Test
     void generateTicketsForBooking_ShouldThrowException_WhenBookingNotConfirmed() {
         // Given
         testBooking.setStatus(BookingStatus.RESERVED);

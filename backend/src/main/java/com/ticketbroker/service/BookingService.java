@@ -113,8 +113,26 @@ public class BookingService {
         auditService.logBuyerConfirmedPayment(booking);
     }
 
+    /**
+     * Result of an admin payment confirmation. {@code newlyConfirmed} is false when the
+     * booking was already confirmed and nothing was changed, so callers can skip side
+     * effects such as sending the confirmation email again.
+     */
+    public record PaymentConfirmation(Booking booking, boolean newlyConfirmed) {
+    }
+
     @Transactional
-    public Booking confirmPaymentByAdmin(Booking booking, String adminUser) {
+    public PaymentConfirmation confirmPaymentByAdmin(Long bookingId, String adminUser) {
+        Objects.requireNonNull(bookingId, "Booking ID cannot be null");
+        // Lock the booking row so a concurrent confirmation waits for this one and then
+        // sees the CONFIRMED status instead of generating tickets a second time
+        Booking booking = bookingRepository.findByIdForUpdate(bookingId)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+
+        if (booking.getStatus() == BookingStatus.CONFIRMED) {
+            return new PaymentConfirmation(booking, false);
+        }
+
         booking.setStatus(BookingStatus.CONFIRMED);
         booking.setConfirmedAt(LocalDateTime.now());
         Booking saved = bookingRepository.save(booking);
@@ -127,7 +145,7 @@ public class BookingService {
 
         auditService.logPaymentConfirmed(saved, adminUser);
 
-        return saved;
+        return new PaymentConfirmation(saved, true);
     }
 
     @Transactional
@@ -191,6 +209,8 @@ public class BookingService {
 
         // If changing to confirmed
         if (oldStatus != BookingStatus.CONFIRMED && newStatus == BookingStatus.CONFIRMED) {
+            // Status must be CONFIRMED before generating tickets, otherwise generation is rejected
+            booking.setStatus(BookingStatus.CONFIRMED);
             booking.setConfirmedAt(LocalDateTime.now());
             // Generate tickets
             ticketService.generateTicketsForBooking(booking);

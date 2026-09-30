@@ -176,10 +176,13 @@ public class AdminApiController {
     public ResponseEntity<BookingResponse> confirmPayment(@PathVariable Long id,
             @RequestParam(defaultValue = "admin") String adminUser) {
         Objects.requireNonNull(id, "Booking ID cannot be null");
-        Booking booking = bookingRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+        BookingService.PaymentConfirmation result = bookingService.confirmPaymentByAdmin(id, adminUser);
+        Booking confirmed = result.booking();
 
-        Booking confirmed = bookingService.confirmPaymentByAdmin(booking, adminUser);
+        // Already confirmed earlier: return the booking as-is without re-sending the email
+        if (!result.newlyConfirmed()) {
+            return ResponseEntity.ok(BookingResponse.fromEntity(confirmed));
+        }
 
         // Send confirmation email with PDF
         try {
