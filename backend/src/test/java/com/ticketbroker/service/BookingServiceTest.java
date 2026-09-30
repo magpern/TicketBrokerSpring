@@ -196,7 +196,9 @@ class BookingServiceTest {
         when(bookingRepository.findByShowId(1L)).thenReturn(new ArrayList<>());
         when(showRepository.save(any(Show.class))).thenReturn(testShow);
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
-        when(ticketService.generateTicketsForBooking(any(Booking.class))).thenReturn(new ArrayList<>());
+        // TicketService rejects non-confirmed bookings, so the status must already be set when it is called
+        when(ticketService.generateTicketsForBooking(argThat(b -> b.getStatus() == BookingStatus.CONFIRMED)))
+                .thenReturn(new ArrayList<>());
 
         // When
         Booking result = bookingService.updateBookingStatus(testBooking, BookingStatus.CONFIRMED, "admin");
@@ -258,20 +260,51 @@ class BookingServiceTest {
     void confirmPaymentByAdmin_ShouldConfirmBookingAndGenerateTickets() {
         // Given
         testBooking.setStatus(BookingStatus.RESERVED);
+        when(bookingRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testBooking));
         when(bookingRepository.save(any(Booking.class))).thenReturn(testBooking);
         when(bookingRepository.findByShowId(1L)).thenReturn(new ArrayList<>());
         when(showRepository.save(any(Show.class))).thenReturn(testShow);
         when(ticketService.generateTicketsForBooking(any(Booking.class))).thenReturn(new ArrayList<>());
 
         // When
-        Booking result = bookingService.confirmPaymentByAdmin(testBooking, "admin");
+        BookingService.PaymentConfirmation confirmation = bookingService.confirmPaymentByAdmin(1L, "admin");
 
         // Then
+        Booking result = confirmation.booking();
+        assertThat(confirmation.newlyConfirmed()).isTrue();
         assertThat(result.getStatus()).isEqualTo(BookingStatus.CONFIRMED);
         assertThat(result.getConfirmedAt()).isNotNull();
         verify(ticketService).generateTicketsForBooking(result);
         verify(auditService).logPaymentConfirmed(result, "admin");
         verify(showRepository).save(any(Show.class));
+    }
+
+    @Test
+    void confirmPaymentByAdmin_ShouldBeNoOp_WhenAlreadyConfirmed() {
+        // Given
+        testBooking.setStatus(BookingStatus.CONFIRMED);
+        when(bookingRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testBooking));
+
+        // When
+        BookingService.PaymentConfirmation confirmation = bookingService.confirmPaymentByAdmin(1L, "admin");
+
+        // Then
+        assertThat(confirmation.newlyConfirmed()).isFalse();
+        assertThat(confirmation.booking()).isSameAs(testBooking);
+        verify(ticketService, never()).generateTicketsForBooking(any());
+        verify(bookingRepository, never()).save(any());
+        verify(auditService, never()).logPaymentConfirmed(any(), any());
+    }
+
+    @Test
+    void confirmPaymentByAdmin_ShouldThrow_WhenBookingNotFound() {
+        // Given
+        when(bookingRepository.findByIdForUpdate(99L)).thenReturn(Optional.empty());
+
+        // When/Then
+        assertThatThrownBy(() -> bookingService.confirmPaymentByAdmin(99L, "admin"))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("Booking not found");
     }
 
     @Test

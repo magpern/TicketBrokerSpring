@@ -66,7 +66,13 @@ public class TicketService {
         if (booking.getStatus() != com.ticketbroker.model.BookingStatus.CONFIRMED) {
             throw new IllegalArgumentException("Can only generate tickets for confirmed bookings");
         }
-        
+
+        // Idempotent: a booking that already has tickets keeps them, never gets a second set
+        List<Ticket> existing = ticketRepository.findByBookingId(booking.getId());
+        if (!existing.isEmpty()) {
+            return existing;
+        }
+
         Buyer buyer = createOrUpdateBuyer(booking);
         List<Ticket> tickets = new ArrayList<>();
         int ticketNumber = 1;
