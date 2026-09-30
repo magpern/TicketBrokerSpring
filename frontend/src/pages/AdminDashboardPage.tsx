@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import adminApi from '../services/adminApi'
 import { BookingResponse } from '../types/booking'
@@ -17,6 +17,10 @@ function AdminDashboardPage() {
   const [filterUnconfirmed, setFilterUnconfirmed] = useState(false)
   const [loading, setLoading] = useState(true)
   const [message, setMessage] = useState<{ type: string; text: string } | null>(null)
+  // Bookings with a confirm-payment request in flight. The ref guards against a second
+  // click landing before React re-renders; the state drives the disabled button.
+  const confirmingRef = useRef<Set<number>>(new Set())
+  const [confirmingIds, setConfirmingIds] = useState<Set<number>>(new Set())
   
   // Calculate stats
   const stats = {
@@ -85,6 +89,12 @@ function AdminDashboardPage() {
   }
 
   const handleConfirmPayment = async (bookingId: number) => {
+    if (confirmingRef.current.has(bookingId)) {
+      return
+    }
+    confirmingRef.current.add(bookingId)
+    setConfirmingIds(new Set(confirmingRef.current))
+
     try {
       const response = await adminApi.post(`/bookings/${bookingId}/confirm-payment`)
       const updatedBooking = response.data
@@ -110,6 +120,9 @@ function AdminDashboardPage() {
     } catch (error) {
       console.error('Failed to confirm payment:', error)
       setMessage({ type: 'error', text: 'Kunde inte bekräfta betalning' })
+    } finally {
+      confirmingRef.current.delete(bookingId)
+      setConfirmingIds(new Set(confirmingRef.current))
     }
   }
 
@@ -380,8 +393,10 @@ function AdminDashboardPage() {
                                   <button
                                     onClick={() => handleConfirmPayment(booking.id!)}
                                     className="btn btn-small btn-success"
+                                    disabled={confirmingIds.has(booking.id!)}
+                                    aria-busy={confirmingIds.has(booking.id!)}
                                   >
-                                    Bekräfta betalning
+                                    {confirmingIds.has(booking.id!) ? 'Bekräftar…' : 'Bekräfta betalning'}
                                   </button>
                                 </>
                               ) : (
