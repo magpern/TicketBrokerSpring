@@ -349,6 +349,11 @@ td.actions {
   min-height: auto;
 }
 
+.btn-small:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 .btn-warning {
   background-color: #ffc107;
   color: #212529;
