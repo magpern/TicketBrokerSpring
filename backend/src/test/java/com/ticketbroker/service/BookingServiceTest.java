@@ -11,11 +11,13 @@ import com.ticketbroker.util.BookingReferenceGenerator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -79,7 +81,7 @@ class BookingServiceTest {
     @Test
     void createBooking_ShouldCreateBooking_WhenShowExistsAndTicketsAvailable() {
         // Given
-        when(showRepository.findById(1L)).thenReturn(Optional.of(testShow));
+        when(showRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testShow));
         when(bookingReferenceGenerator.generateUniqueReference()).thenReturn("ABC123");
         when(bookingRepository.save(any(Booking.class))).thenAnswer(invocation -> {
             Booking booking = invocation.getArgument(0);
@@ -88,7 +90,7 @@ class BookingServiceTest {
         });
 
         // When
-        Booking result = bookingService.createBooking(testBooking);
+        Booking result = bookingService.createBooking(testBooking).booking();
 
         // Then
         assertThat(result).isNotNull();
@@ -97,23 +99,54 @@ class BookingServiceTest {
         assertThat(result.getCreatedAt()).isNotNull();
         assertThat(result.getShow()).isEqualTo(testShow);
 
-        verify(showRepository).findById(1L);
+        verify(showRepository).findByIdForUpdate(1L);
         verify(bookingReferenceGenerator).generateUniqueReference();
         verify(bookingRepository).save(any(Booking.class));
         verify(auditService).logBookingCreated(any(Booking.class));
     }
 
     @Test
+    void createBooking_ShouldReturnExistingBooking_WhenSameBookingSubmittedAgainWithinWindow() {
+        // Given
+        Booking existing = new Booking();
+        existing.setId(7L);
+        existing.setBookingReference("FIRST1");
+        existing.setShow(testShow);
+        when(showRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testShow));
+        when(bookingRepository.findRecentDuplicates(eq("john@example.com"), eq(1L), eq(2), eq(1),
+                any(LocalDateTime.class))).thenReturn(List.of(existing));
+
+        // When
+        LocalDateTime before = LocalDateTime.now();
+        BookingService.CreateBookingResult result = bookingService.createBooking(testBooking);
+
+        // Then
+        assertThat(result.duplicate()).isTrue();
+        assertThat(result.booking()).isSameAs(existing);
+        assertThat(testShow.getAvailableTickets()).isEqualTo(50);
+
+        ArgumentCaptor<LocalDateTime> since = ArgumentCaptor.forClass(LocalDateTime.class);
+        verify(bookingRepository).findRecentDuplicates(any(), any(), any(), any(), since.capture());
+        assertThat(since.getValue()).isBeforeOrEqualTo(before.minus(BookingService.DUPLICATE_WINDOW).plusSeconds(1));
+        assertThat(since.getValue()).isAfter(before.minus(BookingService.DUPLICATE_WINDOW).minusSeconds(1));
+
+        verify(bookingReferenceGenerator, never()).generateUniqueReference();
+        verify(bookingRepository, never()).save(any());
+        verify(showRepository, never()).save(any());
+        verify(auditService, never()).logBookingCreated(any());
+    }
+
+    @Test
     void createBooking_ShouldThrowException_WhenShowNotFound() {
         // Given
-        when(showRepository.findById(1L)).thenReturn(Optional.empty());
+        when(showRepository.findByIdForUpdate(1L)).thenReturn(Optional.empty());
 
         // When/Then
         assertThatThrownBy(() -> bookingService.createBooking(testBooking))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Show not found");
 
-        verify(showRepository).findById(1L);
+        verify(showRepository).findByIdForUpdate(1L);
         verify(bookingRepository, never()).save(any());
     }
 
@@ -123,14 +156,14 @@ class BookingServiceTest {
         testShow.setAvailableTickets(2); // Only 2 tickets available
         testBooking.setAdultTickets(2);
         testBooking.setStudentTickets(1); // Total 3 tickets needed
-        when(showRepository.findById(1L)).thenReturn(Optional.of(testShow));
+        when(showRepository.findByIdForUpdate(1L)).thenReturn(Optional.of(testShow));
 
         // When/Then
         assertThatThrownBy(() -> bookingService.createBooking(testBooking))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("Not enough tickets available");
 
-        verify(showRepository).findById(1L);
+        verify(showRepository).findByIdForUpdate(1L);
         verify(bookingRepository, never()).save(any());
     }
 
@@ -144,7 +177,7 @@ class BookingServiceTest {
                 .isInstanceOf(NullPointerException.class)
                 .hasMessageContaining("Booking show cannot be null");
 
-        verify(showRepository, never()).findById(any());
+        verify(showRepository, never()).findByIdForUpdate(any());
         verify(bookingRepository, never()).save(any());
     }
 

@@ -83,6 +83,7 @@
     "addToCart": "Legg billettene dine i handlekurven, gå til handlekurven og fullfør betaling",
     "toCart": "Til handlekurv",
     "toPayment": "Til betaling",
+    "submitting": "Sender…",
     "bookingSummary": "Din bestilling:",
     "selectAtLeastOne": "Velg minst én billett",
     "bookingFailed": "Bestillingen mislyktes. Prøv igjen.",

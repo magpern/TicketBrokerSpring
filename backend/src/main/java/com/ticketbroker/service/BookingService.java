@@ -1,10 +1,13 @@
 package com.ticketbroker.service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +21,12 @@ import com.ticketbroker.util.BookingReferenceGenerator;
 
 @Service
 public class BookingService {
+    private static final Logger logger = LoggerFactory.getLogger(BookingService.class);
+    static final Duration DUPLICATE_WINDOW = Duration.ofSeconds(60);
+
+    public record CreateBookingResult(Booking booking, boolean duplicate) {
+    }
+
     private final BookingRepository bookingRepository;
     private final ShowRepository showRepository;
     private final BookingReferenceGenerator bookingReferenceGenerator;
@@ -38,11 +47,25 @@ public class BookingService {
     }
 
     @Transactional
-    public Booking createBooking(Booking booking) {
+    public CreateBookingResult createBooking(Booking booking) {
         Objects.requireNonNull(booking.getShow(), "Booking show cannot be null");
         Long showId = Objects.requireNonNull(booking.getShow().getId(), "Show ID cannot be null");
-        Show show = showRepository.findById(showId)
+        // The lock serializes bookings per show, so two near-simultaneous submits can't both
+        // pass the duplicate check below (or both pass the availability check).
+        Show show = showRepository.findByIdForUpdate(showId)
                 .orElseThrow(() -> new IllegalArgumentException("Show not found"));
+
+        // A double-click or client retry submits the same booking again within seconds;
+        // hand back the first booking instead of reserving the seats a second time.
+        List<Booking> duplicates = bookingRepository.findRecentDuplicates(booking.getEmail(), showId,
+                booking.getAdultTickets(), booking.getStudentTickets(),
+                LocalDateTime.now().minus(DUPLICATE_WINDOW));
+        if (!duplicates.isEmpty()) {
+            Booking existing = duplicates.get(0);
+            logger.info("Duplicate booking submission for show {} detected; returning existing booking {}",
+                    showId, existing.getBookingReference());
+            return new CreateBookingResult(existing, true);
+        }
 
         // Check availability
         if (show.getAvailableTickets() < booking.getTotalTickets()) {
@@ -65,7 +88,7 @@ public class BookingService {
         // Log booking creation
         auditService.logBookingCreated(saved);
 
-        return saved;
+        return new CreateBookingResult(saved, false);
     }
 
     public Optional<Booking> findByReference(String bookingReference) {
