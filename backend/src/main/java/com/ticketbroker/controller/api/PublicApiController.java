@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -49,11 +50,13 @@ public class PublicApiController {
     private final QrCodeService qrCodeService;
     private final SettingsService settingsService;
     private final SwishUrlGenerator swishUrlGenerator;
+    private final String appBaseUrl;
 
     public PublicApiController(ShowRepository showRepository, BookingService bookingService,
             TicketService ticketService, EmailService emailService,
             PdfService pdfService, QrCodeService qrCodeService,
-            SettingsService settingsService, SwishUrlGenerator swishUrlGenerator) {
+            SettingsService settingsService, SwishUrlGenerator swishUrlGenerator,
+            @Value("${app.base-url}") String appBaseUrl) {
         this.showRepository = showRepository;
         this.bookingService = bookingService;
         this.ticketService = ticketService;
@@ -62,6 +65,7 @@ public class PublicApiController {
         this.qrCodeService = qrCodeService;
         this.settingsService = settingsService;
         this.swishUrlGenerator = swishUrlGenerator;
+        this.appBaseUrl = appBaseUrl;
     }
 
     @GetMapping("/shows")
@@ -130,7 +134,7 @@ public class PublicApiController {
 
         // Send confirmation email
         try {
-            String paymentUrl = "/booking/success/" + created.getBookingReference() + "/" + created.getEmail();
+            String paymentUrl = appBaseUrl + "/booking/success/" + created.getBookingReference() + "/" + created.getEmail();
             emailService.sendBookingConfirmation(created, paymentUrl);
             emailService.sendAdminNotification(created);
         } catch (Exception e) {
