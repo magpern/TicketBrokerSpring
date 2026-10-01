@@ -345,7 +345,7 @@ public class PublicApiController {
 
         try {
             // Find all confirmed bookings with tickets for this email
-            List<Booking> allBookings = bookingService.getBookingsByEmail(email.toLowerCase());
+            List<Booking> allBookings = bookingService.getBookingsByEmail(email);
             List<Booking> confirmedBookings = allBookings.stream()
                     .filter(b -> b.getStatus() == com.ticketbroker.model.BookingStatus.CONFIRMED
                             && b.getTickets() != null && !b.getTickets().isEmpty())

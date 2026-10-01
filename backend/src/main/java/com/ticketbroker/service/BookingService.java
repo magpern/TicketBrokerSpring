@@ -111,12 +111,13 @@ public class BookingService {
         return bookingRepository.findByStatus(status);
     }
 
+    // Emails are stored as typed at booking time, so lookups must ignore case
     public List<Booking> getBookingsByEmail(String email) {
-        return bookingRepository.findByEmail(email);
+        return bookingRepository.findByEmailIgnoreCase(email.trim());
     }
 
     public List<Booking> getBookingsByEmailAndLastName(String email, String lastName) {
-        return bookingRepository.findByEmailAndLastName(email.toLowerCase(), lastName);
+        return bookingRepository.findByEmailIgnoreCaseAndLastNameIgnoreCase(email.trim(), lastName.trim());
     }
 
     @Transactional
