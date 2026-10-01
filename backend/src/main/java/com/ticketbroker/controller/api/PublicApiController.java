@@ -28,6 +28,7 @@ import com.ticketbroker.model.Booking;
 import com.ticketbroker.model.Show;
 import com.ticketbroker.model.Ticket;
 import com.ticketbroker.repository.ShowRepository;
+import com.ticketbroker.service.BookingNotificationService;
 import com.ticketbroker.service.BookingService;
 import com.ticketbroker.service.EmailService;
 import com.ticketbroker.service.PdfService;
@@ -50,12 +51,14 @@ public class PublicApiController {
     private final QrCodeService qrCodeService;
     private final SettingsService settingsService;
     private final SwishUrlGenerator swishUrlGenerator;
+    private final BookingNotificationService bookingNotificationService;
     private final String appBaseUrl;
 
     public PublicApiController(ShowRepository showRepository, BookingService bookingService,
             TicketService ticketService, EmailService emailService,
             PdfService pdfService, QrCodeService qrCodeService,
             SettingsService settingsService, SwishUrlGenerator swishUrlGenerator,
+            BookingNotificationService bookingNotificationService,
             @Value("${app.base-url}") String appBaseUrl) {
         this.showRepository = showRepository;
         this.bookingService = bookingService;
@@ -65,6 +68,7 @@ public class PublicApiController {
         this.qrCodeService = qrCodeService;
         this.settingsService = settingsService;
         this.swishUrlGenerator = swishUrlGenerator;
+        this.bookingNotificationService = bookingNotificationService;
         this.appBaseUrl = appBaseUrl;
     }
 
@@ -130,16 +134,16 @@ public class PublicApiController {
         booking.setTotalAmount((request.getAdultTickets() * adultPrice) +
                 (request.getStudentTickets() * studentPrice));
 
-        Booking created = bookingService.createBooking(booking);
+        BookingService.CreateBookingResult result = bookingService.createBooking(booking);
+        Booking created = result.booking();
 
-        // Send confirmation email
-        try {
-            String paymentUrl = appBaseUrl + "/booking/success/" + created.getBookingReference() + "/" + created.getEmail();
-            emailService.sendBookingConfirmation(created, paymentUrl);
-            emailService.sendAdminNotification(created);
-        } catch (Exception e) {
-            // Log error but don't fail the booking
+        if (result.duplicate()) {
+            // The first submission already sent the emails
+            return ResponseEntity.ok(BookingResponse.fromEntity(created));
         }
+
+        String paymentUrl = appBaseUrl + "/booking/success/" + created.getBookingReference() + "/" + created.getEmail();
+        bookingNotificationService.sendNewBookingEmails(created, paymentUrl);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(BookingResponse.fromEntity(created));
     }

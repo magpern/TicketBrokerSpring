@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useNavigate } from "react-router-dom";
 import Layout from "../components/Layout";
@@ -29,6 +29,10 @@ function BookingPage() {
     adultTickets: 0,
     studentTickets: 0,
   });
+  // The ref guards against a second click landing before React re-renders;
+  // the state drives the disabled button.
+  const submittingRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     // Check initialization status
@@ -154,6 +158,11 @@ function BookingPage() {
       }
       setStep(3);
     } else if (step === 3) {
+      if (submittingRef.current) {
+        return;
+      }
+      submittingRef.current = true;
+      setIsSubmitting(true);
       try {
         const response = await api.post("/public/bookings", formData);
         navigate(
@@ -162,6 +171,8 @@ function BookingPage() {
       } catch (error) {
         console.error("Booking failed:", error);
         alert(t("booking.bookingFailed"));
+        submittingRef.current = false;
+        setIsSubmitting(false);
       }
     }
   };
@@ -468,11 +479,17 @@ function BookingPage() {
                   type="button"
                   onClick={() => setStep(2)}
                   className="btn btn-secondary"
+                  disabled={isSubmitting}
                 >
                   {t("common.back")}
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  {t("booking.toPayment")}
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={isSubmitting}
+                  aria-busy={isSubmitting}
+                >
+                  {isSubmitting ? t("booking.submitting") : t("booking.toPayment")}
                 </button>
               </div>
             </form>

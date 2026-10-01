@@ -83,6 +83,7 @@
     "addToCart": "Lägg dina biljetter i varukorgen, gå till varukorgen och verkställ betalning",
     "toCart": "Till Varukorg",
     "toPayment": "Till Betalning",
+    "submitting": "Skickar…",
     "bookingSummary": "Din bokning:",
     "selectAtLeastOne": "Välj minst en biljett",
     "bookingFailed": "Bokningen misslyckades. Försök igen.",

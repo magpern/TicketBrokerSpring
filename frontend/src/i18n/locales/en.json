@@ -83,6 +83,7 @@
     "addToCart": "Add your tickets to the cart, go to the cart and complete payment",
     "toCart": "To Cart",
     "toPayment": "To Payment",
+    "submitting": "Submitting…",
     "bookingSummary": "Your booking:",
     "selectAtLeastOne": "Select at least one ticket",
     "bookingFailed": "Booking failed. Please try again.",
