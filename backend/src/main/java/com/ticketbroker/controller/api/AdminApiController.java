@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -54,6 +55,7 @@ public class AdminApiController {
     private final ExcelService excelService;
     private final SettingsService settingsService;
     private final AuditService auditService;
+    private final String appBaseUrl;
     private static final DateTimeFormatter SHOW_DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
     public AdminApiController(BookingRepository bookingRepository, TicketRepository ticketRepository,
@@ -61,7 +63,7 @@ public class AdminApiController {
             BookingService bookingService, TicketService ticketService,
             EmailService emailService, PdfService pdfService,
             ExcelService excelService, SettingsService settingsService,
-            AuditService auditService) {
+            AuditService auditService, @Value("${app.base-url}") String appBaseUrl) {
         this.bookingRepository = bookingRepository;
         this.ticketRepository = ticketRepository;
         this.showRepository = showRepository;
@@ -72,6 +74,7 @@ public class AdminApiController {
         this.excelService = excelService;
         this.settingsService = settingsService;
         this.auditService = auditService;
+        this.appBaseUrl = appBaseUrl;
     }
 
     @GetMapping("/bookings")
@@ -216,7 +219,7 @@ public class AdminApiController {
 
         try {
             // Generate payment URL
-            String paymentUrl = "/booking/success/" + booking.getBookingReference() + "/" + booking.getEmail();
+            String paymentUrl = appBaseUrl + "/booking/success/" + booking.getBookingReference() + "/" + booking.getEmail();
             emailService.sendBookingConfirmation(booking, paymentUrl);
 
             Map<String, String> response = new HashMap<>();
