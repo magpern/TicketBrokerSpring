@@ -370,19 +370,30 @@ class BookingServiceTest {
     }
 
     @Test
-    void getBookingsByEmailAndLastName_ShouldLowercaseEmail() {
+    void getBookingsByEmailAndLastName_ShouldMatchIgnoringCaseAndSurroundingWhitespace() {
         // Given
-        String email = "John@Example.com";
-        String lastName = "Doe";
         List<Booking> expected = Arrays.asList(testBooking);
-        when(bookingRepository.findByEmailAndLastName("john@example.com", lastName)).thenReturn(expected);
+        when(bookingRepository.findByEmailIgnoreCaseAndLastNameIgnoreCase("John@Example.com", "doe"))
+                .thenReturn(expected);
 
         // When
-        List<Booking> result = bookingService.getBookingsByEmailAndLastName(email, lastName);
+        List<Booking> result = bookingService.getBookingsByEmailAndLastName(" John@Example.com ", " doe ");
 
         // Then
         assertThat(result).isEqualTo(expected);
-        verify(bookingRepository).findByEmailAndLastName("john@example.com", lastName);
+    }
+
+    @Test
+    void getBookingsByEmail_ShouldMatchIgnoringCaseAndSurroundingWhitespace() {
+        // Given
+        List<Booking> expected = Arrays.asList(testBooking);
+        when(bookingRepository.findByEmailIgnoreCase("Anna.Svensson@Example.com")).thenReturn(expected);
+
+        // When
+        List<Booking> result = bookingService.getBookingsByEmail("Anna.Svensson@Example.com  ");
+
+        // Then
+        assertThat(result).isEqualTo(expected);
     }
 
     private Ticket createTicket(Long id, boolean isUsed) {

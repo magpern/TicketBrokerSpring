@@ -8,6 +8,7 @@ import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import com.ticketbroker.model.Booking;
 
@@ -78,7 +79,7 @@ public class EmailService {
         }
         helper.setTo(bookingEmail);
         helper.setReplyTo(contactEmail);
-        helper.setSubject("Ticket Confirmation - " + concertName + " (" + bookingReference + ")");
+        helper.setSubject("Dina biljetter - " + concertName + " (" + bookingReference + ")");
 
         String htmlContent = buildPaymentConfirmedEmail(booking, concertName, concertDate, concertVenue, contactEmail);
         Objects.requireNonNull(htmlContent, "HTML content cannot be null");
@@ -89,6 +90,12 @@ public class EmailService {
                 new ByteArrayResource(pdfData));
 
         mailSender.send(message);
+    }
+
+    // Names, phone numbers and contact messages are typed by visitors; escape every value put
+    // into the email HTML so nobody can inject links or markup into mail sent from our address.
+    private static String esc(Object value) {
+        return value == null ? "" : HtmlUtils.htmlEscape(value.toString(), StandardCharsets.UTF_8.name());
     }
 
     private String formatDateForSwedish(LocalDate date) {
@@ -155,23 +162,23 @@ public class EmailService {
 
                         <p>Med vänliga hälsningar,<br>%s-gruppen</p>
                         """,
-                booking.getFirstName(),
-                concertName,
-                booking.getBookingReference(),
-                booking.getFullName(),
-                booking.getEmail(),
-                booking.getPhone(),
+                esc(booking.getFirstName()),
+                esc(concertName),
+                esc(booking.getBookingReference()),
+                esc(booking.getFullName()),
+                esc(booking.getEmail()),
+                esc(booking.getPhone()),
                 booking.getShow().getDate() != null ? formatDateForSwedish(booking.getShow().getDate()) : "",
-                booking.getShow().getStartTime(),
-                booking.getShow().getEndTime(),
+                esc(booking.getShow().getStartTime()),
+                esc(booking.getShow().getEndTime()),
                 booking.getAdultTickets(),
                 booking.getStudentTickets(),
                 booking.getTotalAmount(),
-                swishNumber,
-                paymentUrl,
-                paymentUrl,
-                paymentUrl,
-                concertName);
+                esc(swishNumber),
+                esc(paymentUrl),
+                esc(paymentUrl),
+                esc(paymentUrl),
+                esc(concertName));
     }
 
     private String buildPaymentConfirmedEmail(Booking booking, String concertName,
@@ -183,7 +190,7 @@ public class EmailService {
                         <head>
                             <meta charset="UTF-8">
                             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>Ticket Confirmation - %s</title>
+                            <title>Dina biljetter - %s</title>
                         </head>
                         <body style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
                                      line-height: 1.6; color: #333333; background: #f8f9fa; margin: 0; padding: 0;">
@@ -193,7 +200,7 @@ public class EmailService {
 
                                 <div style="background: #2c3e50; color: white; padding: 30px; text-align: center;">
                                     <h1 style="margin: 0; font-size: 24px; font-weight: 300; letter-spacing: 1px;">
-                                        TICKET CONFIRMATION
+                                        BILJETTBEKRÄFTELSE
                                     </h1>
                                     <p style="margin: 8px 0 0 0; font-size: 14px; opacity: 0.9; font-weight: 300;">
                                         %s • %s
@@ -203,68 +210,68 @@ public class EmailService {
                                 <div style="padding: 40px 30px;">
                                     <div style="text-align: center; margin-bottom: 40px;">
                                         <h2 style="margin: 0 0 15px 0; font-size: 20px; color: #27ae60; font-weight: 400;">
-                                            Payment Confirmed
+                                            Betalningen är bekräftad
                                         </h2>
                                         <p style="margin: 0; font-size: 16px; color: #666; font-weight: 300;">
-                                            Your tickets have been successfully processed and are ready for the event.
+                                            Tack! Vi har tagit emot din betalning och dina biljetter är klara.
                                         </p>
                                     </div>
 
                                     <div style="background: #e8f5e8; border: 1px solid #27ae60; padding: 25px; margin-bottom: 30px;">
                                         <h3 style="margin: 0 0 15px 0; font-size: 18px; color: #27ae60; font-weight: 600;">
-                                            🎫 YOUR TICKETS
+                                            🎫 DINA BILJETTER
                                         </h3>
                                         <p style="margin: 0; font-size: 15px; color: #555; font-weight: 500;">
-                                            Your tickets are attached to this email as a PDF document. Each ticket contains a unique QR code for entry.
+                                            Dina biljetter finns bifogade i detta mail som en PDF-fil. Varje biljett har en unik QR-kod som visas upp vid entrén.
                                         </p>
                                         <p style="margin: 10px 0 0 0; font-size: 14px; color: #666;">
-                                            <strong>Important:</strong> Please check your email attachments to download your tickets.
+                                            <strong>Viktigt:</strong> Spara den bifogade PDF-filen så att du har biljetterna med dig till konserten.
                                         </p>
                                     </div>
 
                                     <div style="background: #f8f9fa; border-left: 4px solid #3498db; padding: 25px; margin-bottom: 30px;">
                                         <h3 style="margin: 0 0 20px 0; font-size: 16px; color: #2c3e50; font-weight: 500;">
-                                            BOOKING DETAILS
+                                            BOKNINGSDETALJER
                                         </h3>
                                         <table style="width: 100%%; border-collapse: collapse;">
                                             <tr>
-                                                <td style="padding: 8px 0; font-weight: 500; color: #555; width: 140px;">Booking Reference:</td>
+                                                <td style="padding: 8px 0; font-weight: 500; color: #555; width: 140px;">Bokningsreferens:</td>
                                                 <td style="padding: 8px 0; color: #333; font-family: monospace; font-size: 14px;">%s</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Name:</td>
+                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Namn:</td>
                                                 <td style="padding: 8px 0; color: #333;">%s</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Email:</td>
+                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">E-post:</td>
                                                 <td style="padding: 8px 0; color: #333;">%s</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Phone:</td>
+                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Telefon:</td>
                                                 <td style="padding: 8px 0; color: #333;">%s</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Tickets:</td>
-                                                <td style="padding: 8px 0; color: #333;">%d tickets</td>
+                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Biljetter:</td>
+                                                <td style="padding: 8px 0; color: #333;">%d st</td>
                                             </tr>
                                         </table>
                                     </div>
 
                                     <div style="background: #f8f9fa; padding: 25px; margin-bottom: 30px;">
                                         <h3 style="margin: 0 0 20px 0; font-size: 16px; color: #2c3e50; font-weight: 500;">
-                                            EVENT INFORMATION
+                                            KONSERTINFORMATION
                                         </h3>
                                         <table style="width: 100%%; border-collapse: collapse;">
                                             <tr>
-                                                <td style="padding: 8px 0; font-weight: 500; color: #555; width: 80px;">Date:</td>
+                                                <td style="padding: 8px 0; font-weight: 500; color: #555; width: 80px;">Datum:</td>
                                                 <td style="padding: 8px 0; color: #333;">%s</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Time:</td>
+                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Tid:</td>
                                                 <td style="padding: 8px 0; color: #333;">%s - %s</td>
                                             </tr>
                                             <tr>
-                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Venue:</td>
+                                                <td style="padding: 8px 0; font-weight: 500; color: #555;">Plats:</td>
                                                 <td style="padding: 8px 0; color: #333;">%s</td>
                                             </tr>
                                         </table>
@@ -273,29 +280,29 @@ public class EmailService {
 
                                 <div style="background: #34495e; color: white; padding: 25px; text-align: center;">
                                     <p style="margin: 0 0 10px 0; font-size: 14px; font-weight: 300;">
-                                        Questions? Contact us at %s
+                                        Har du frågor? Svara på detta mail eller kontakta oss på %s.
                                     </p>
                                     <p style="margin: 0; font-size: 12px; opacity: 0.8; font-weight: 300;">
-                                        This is an automated message. Please do not reply to this email.
+                                        Detta mail skickades automatiskt när din betalning bekräftades.
                                     </p>
                                 </div>
                             </div>
                         </body>
                         </html>
                         """,
-                concertName,
-                concertName,
-                concertDate,
-                booking.getBookingReference(),
-                booking.getFullName(),
-                booking.getEmail(),
-                booking.getPhone(),
+                esc(concertName),
+                esc(concertName),
+                esc(concertDate),
+                esc(booking.getBookingReference()),
+                esc(booking.getFullName()),
+                esc(booking.getEmail()),
+                esc(booking.getPhone()),
                 booking.getTickets().size(),
-                concertDate,
-                booking.getShow().getStartTime(),
-                booking.getShow().getEndTime(),
-                concertVenue,
-                contactEmail);
+                esc(concertDate),
+                esc(booking.getShow().getStartTime()),
+                esc(booking.getShow().getEndTime()),
+                esc(concertVenue),
+                esc(contactEmail));
     }
 
     private String buildAdminNotificationEmail(Booking booking) {
@@ -310,6 +317,7 @@ public class EmailService {
                     <li><strong>Namn:</strong> %s</li>
                     <li><strong>E-post:</strong> %s</li>
                     <li><strong>Telefon:</strong> %s</li>
+                    <li><strong>Datum:</strong> %s</li>
                     <li><strong>Tid:</strong> %s-%s</li>
                     <li><strong>Ordinariebiljetter:</strong> %d st</li>
                     <li><strong>Studentbiljetter:</strong> %d st</li>
@@ -319,12 +327,13 @@ public class EmailService {
 
                 <p>Logga in på adminpanelen för att hantera reservationen.</p>
                 """,
-                booking.getBookingReference(),
-                booking.getFullName(),
-                booking.getEmail(),
-                booking.getPhone(),
-                booking.getShow().getStartTime(),
-                booking.getShow().getEndTime(),
+                esc(booking.getBookingReference()),
+                esc(booking.getFullName()),
+                esc(booking.getEmail()),
+                esc(booking.getPhone()),
+                booking.getShow().getDate() != null ? formatDateForSwedish(booking.getShow().getDate()) : "",
+                esc(booking.getShow().getStartTime()),
+                esc(booking.getShow().getEndTime()),
                 booking.getAdultTickets(),
                 booking.getStudentTickets(),
                 booking.getTotalAmount(),
@@ -350,7 +359,7 @@ public class EmailService {
         helper.setSubject("Kontaktformulär: " + subject + " - " + concertName);
 
         String phoneInfo = phone != null && !phone.isEmpty()
-                ? "<li><strong>Telefon:</strong> " + phone + "</li>"
+                ? "<li><strong>Telefon:</strong> " + esc(phone) + "</li>"
                 : "";
 
         String htmlContent = String.format("""
@@ -376,8 +385,8 @@ public class EmailService {
 
                 <p>Meddelandet skickades från: %s kontaktformulär</p>
                 """,
-                concertName, name, email, phoneInfo, subject,
-                message.replace("\n", "<br>"), name, concertName);
+                esc(concertName), esc(name), esc(email), phoneInfo, esc(subject),
+                esc(message).replace("\n", "<br>"), esc(name), esc(concertName));
 
         Objects.requireNonNull(htmlContent, "HTML content cannot be null");
         helper.setText(htmlContent, true);
