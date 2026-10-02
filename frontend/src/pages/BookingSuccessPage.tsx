@@ -28,10 +28,18 @@ function BookingSuccessPage() {
       // Load booking data
       api.get(`/public/bookings/${reference}?email=${email}`).then((response) => {
         setBooking(response.data)
-        setPaymentInitiated(response.data.swishPaymentInitiated || false)
+        setPaymentInitiated((response.data.swishPaymentInitiated && !response.data.buyerConfirmedPayment) || false)
       }).catch(error => {
         console.error('Failed to load booking:', error)
       })
+
+      // The Swish number is otherwise only known after clicking "Betala nu", so a reloaded
+      // page would have no real number to show
+      api.get('/public/settings').then((response) => {
+        if (response.data.swishNumber) {
+          setSwishNumber((current) => current || response.data.swishNumber)
+        }
+      }).catch(() => {})
     }
 
     // Clear localStorage if payment is confirmed
@@ -100,6 +108,7 @@ function BookingSuccessPage() {
 
   const isConfirmed = booking.status === 'confirmed'
   const isPending = booking.buyerConfirmedPayment && !isConfirmed
+  const payee = swishRecipientName ? `${swishRecipientName} (${swishNumber})` : swishNumber
 
   return (
     <Layout>
@@ -124,8 +133,13 @@ function BookingSuccessPage() {
                   : 'Spara denna referens! Du behöver den för att bekräfta din betalning.'}
               </p>
               
-              {!isConfirmed && !isPending && !paymentInitiated && (
+              {!isConfirmed && !paymentInitiated && (
                 <div className="payment-action-inline">
+                  {isPending && (
+                    <p className="payment-note">
+                      Har du inte swishat än? Då kan du betala här. Om du redan har swishat behöver du inte göra något mer.
+                    </p>
+                  )}
                   <button id="pay-now-btn" className="btn btn-primary btn-large" onClick={handleInitiatePayment}>
                     Betala nu
                   </button>
@@ -137,18 +151,17 @@ function BookingSuccessPage() {
                 </div>
               )}
               
-              {paymentInitiated && !isConfirmed && !isPending && (
+              {paymentInitiated && !isConfirmed && (
                 <div className="payment-initiated">
                   <p className="status-initiated">✓ Swish-betalning initierad</p>
                   {isMobile ? (
                     <p className="payment-instruction">
-                      Öppna Swish-appen och betala {booking.totalAmount} kr till {swishRecipientName || 'Event Organizer'} 
-                      ({swishNumber || '012 345 67 89'}) med meddelandet {booking.bookingReference}
+                      Öppna Swish-appen och betala {booking.totalAmount} kr till {payee} med meddelandet {booking.bookingReference}
                     </p>
                   ) : (
                     <div className="qr-code-section">
                       <p className="payment-instruction">
-                        Skanna QR-koden med din telefon för att betala {booking.totalAmount} kr till {swishRecipientName || 'Event Organizer'}
+                        Skanna QR-koden med din telefon för att betala {booking.totalAmount} kr till {payee}
                       </p>
                       {qrCodeData && (
                         <div className="qr-code-container">
@@ -156,13 +169,15 @@ function BookingSuccessPage() {
                         </div>
                       )}
                       <p className="qr-instruction">
-                        Eller betala manuellt till {swishNumber || '012 345 67 89'} med meddelandet {booking.bookingReference}
+                        Eller betala manuellt till {swishNumber} med meddelandet {booking.bookingReference}
                       </p>
                     </div>
                   )}
-                  <button type="button" className="btn btn-success" onClick={handleConfirmPayment}>
-                    Tryck här när du betalat med Swish
-                  </button>
+                  {!isPending && (
+                    <button type="button" className="btn btn-success" onClick={handleConfirmPayment}>
+                      Tryck här när du betalat med Swish
+                    </button>
+                  )}
                 </div>
               )}
             </div>
