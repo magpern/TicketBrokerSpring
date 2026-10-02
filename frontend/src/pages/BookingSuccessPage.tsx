@@ -117,69 +117,73 @@ function BookingSuccessPage() {
           {isPending && (
             <div className="success-banner">
               <p className="success-banner-text">
-                Tack! Vi har fått din bekräftelse. Administratören kommer att kontrollera betalningen.
+                ✓ Tack! Vi har fått din bekräftelse och kontrollerar betalningen.
               </p>
             </div>
           )}
           
           <div className={`success-message ${isPending ? 'compact' : ''}`}>
-            <h2>Tack för din reservation!</h2>
+            {!isPending && <h2>Tack för din reservation!</h2>}
+
+            {/* Payment first: on a phone everything below the reference box is off-screen */}
+            {!isConfirmed && !paymentInitiated && (
+              <div className="payment-action-inline">
+                {isPending && <p className="payment-question">Har du inte swishat än?</p>}
+                <button id="pay-now-btn" className="btn btn-primary btn-large" onClick={handleInitiatePayment}>
+                  Betala nu
+                </button>
+                <p className="payment-amount">
+                  {booking.totalAmount} kr · meddelande {booking.bookingReference}
+                </p>
+                {isMobile ? (
+                  <p className="payment-note">Klicka för att öppna Swish-appen</p>
+                ) : (
+                  <p className="payment-note">Klicka för att visa QR-kod</p>
+                )}
+                {isPending && (
+                  <p className="payment-note">Om du redan har swishat behöver du inte göra något mer.</p>
+                )}
+              </div>
+            )}
+          
+            {paymentInitiated && !isConfirmed && (
+              <div className="payment-initiated">
+                <p className="status-initiated">✓ Swish-betalning initierad</p>
+                {isMobile ? (
+                  <p className="payment-instruction">
+                    Öppna Swish-appen och betala {booking.totalAmount} kr till {payee} med meddelandet {booking.bookingReference}
+                  </p>
+                ) : (
+                  <div className="qr-code-section">
+                    <p className="payment-instruction">
+                      Skanna QR-koden med din telefon för att betala {booking.totalAmount} kr till {payee}
+                    </p>
+                    {qrCodeData && (
+                      <div className="qr-code-container">
+                        <img src={qrCodeData} alt="Swish QR-kod" className="qr-code" />
+                      </div>
+                    )}
+                    <p className="qr-instruction">
+                      Eller betala manuellt till {swishNumber} med meddelandet {booking.bookingReference}
+                    </p>
+                  </div>
+                )}
+                {!isPending && (
+                  <button type="button" className="btn btn-success" onClick={handleConfirmPayment}>
+                    Tryck här när du betalat med Swish
+                  </button>
+                )}
+              </div>
+            )}
+
             <div className="booking-reference-display">
               <h3>Din bokningsreferens:</h3>
               <div className="reference-code">{booking.bookingReference}</div>
               <p className="reference-warning">
-                {isPending 
-                  ? 'Spara denna referens! Du behöver den för att bekräfta din betalning.'
+                {isPending
+                  ? 'Ange referensen som meddelande om du swishar.'
                   : 'Spara denna referens! Du behöver den för att bekräfta din betalning.'}
               </p>
-              
-              {!isConfirmed && !paymentInitiated && (
-                <div className="payment-action-inline">
-                  {isPending && (
-                    <p className="payment-note">
-                      Har du inte swishat än? Då kan du betala här. Om du redan har swishat behöver du inte göra något mer.
-                    </p>
-                  )}
-                  <button id="pay-now-btn" className="btn btn-primary btn-large" onClick={handleInitiatePayment}>
-                    Betala nu
-                  </button>
-                  {isMobile ? (
-                    <p className="payment-note">Klicka för att öppna Swish-appen</p>
-                  ) : (
-                    <p className="payment-note">Klicka för att visa QR-kod</p>
-                  )}
-                </div>
-              )}
-              
-              {paymentInitiated && !isConfirmed && (
-                <div className="payment-initiated">
-                  <p className="status-initiated">✓ Swish-betalning initierad</p>
-                  {isMobile ? (
-                    <p className="payment-instruction">
-                      Öppna Swish-appen och betala {booking.totalAmount} kr till {payee} med meddelandet {booking.bookingReference}
-                    </p>
-                  ) : (
-                    <div className="qr-code-section">
-                      <p className="payment-instruction">
-                        Skanna QR-koden med din telefon för att betala {booking.totalAmount} kr till {payee}
-                      </p>
-                      {qrCodeData && (
-                        <div className="qr-code-container">
-                          <img src={qrCodeData} alt="Swish QR-kod" className="qr-code" />
-                        </div>
-                      )}
-                      <p className="qr-instruction">
-                        Eller betala manuellt till {swishNumber} med meddelandet {booking.bookingReference}
-                      </p>
-                    </div>
-                  )}
-                  {!isPending && (
-                    <button type="button" className="btn btn-success" onClick={handleConfirmPayment}>
-                      Tryck här när du betalat med Swish
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
           </div>
           
