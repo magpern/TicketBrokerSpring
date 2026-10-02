@@ -63,13 +63,24 @@
 }
 
 .payment-action-inline {
-  margin-top: 20px;
-  padding-top: 20px;
-  border-top: 1px solid #dc3545;
+  margin: 10px 0 20px;
 }
 
 .payment-action-inline .btn-large {
   margin-bottom: 10px;
+}
+
+.payment-question {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0 0 12px;
+}
+
+.payment-amount {
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px;
 }
 
 .payment-action-inline .payment-note {
@@ -221,5 +232,42 @@
   .btn-large {
     font-size: 1rem;
     padding: 12px 24px;
+  }
+}
+
+/* Phones: keep the payment button on the first screen */
+@media (max-width: 600px) {
+  .success-banner {
+    padding: 10px 14px;
+    margin-bottom: 12px;
+  }
+
+  .success-banner-text {
+    font-size: 0.95rem;
+  }
+
+  .success-message,
+  .success-message.compact {
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .success-message h2 {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+  }
+
+  .payment-action-inline .btn-large {
+    width: 100%;
+  }
+
+  .booking-reference-display {
+    padding: 12px;
+    margin: 12px 0 0;
+  }
+
+  .booking-reference-display h3 {
+    font-size: 1rem;
+    margin: 0;
   }
 }
