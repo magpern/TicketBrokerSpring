@@ -190,24 +190,6 @@
   font-weight: 600;
 }
 
-.ticket-references {
-  margin-top: 15px;
-}
-
-.ticket-references h4 {
-  color: #dc2626;
-  margin-bottom: 10px;
-}
-
-.ticket-references ul {
-  list-style: none;
-  text-align: left;
-}
-
-.ticket-references li {
-  padding: 5px 0;
-}
-
 .actions {
   text-align: center;
   margin-top: 30px;

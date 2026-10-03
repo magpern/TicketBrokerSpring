@@ -90,11 +90,25 @@ describe('BookingSuccessPage payment options', () => {
     expect(screen.getByRole('button', { name: /Tryck här när du betalat/ })).toBeInTheDocument()
   })
 
-  it('hides payment options once the admin has confirmed the payment', async () => {
+  it('offers the tickets for download instead of payment once the admin has confirmed', async () => {
     renderPage(booking({ status: 'confirmed', buyerConfirmedPayment: true }))
 
-    expect(await screen.findByText(/Betalning bekräftad! Dina biljetter är säkra/)).toBeInTheDocument()
+    expect(await screen.findByText(/Betalningen är bekräftad! Dina biljetter är klara/)).toBeInTheDocument()
+    const download = screen.getByRole('link', { name: 'Ladda ner biljetter (PDF)' })
+    expect(download).toHaveAttribute(
+      'href',
+      '/api/public/bookings/BUTE6/tickets.pdf?email=kerstinclamp%40gmail.com'
+    )
+    expect(screen.getByText('Totalt betalt:')).toBeInTheDocument()
+    expect(screen.queryByText(/bekräfta din betalning/)).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Betala nu' })).not.toBeInTheDocument()
     expect(screen.queryByText(/Har du inte swishat än\?/)).not.toBeInTheDocument()
+  })
+
+  it('does not offer a ticket download before the admin has confirmed', async () => {
+    renderPage(booking({ buyerConfirmedPayment: true }))
+
+    expect(await screen.findByRole('button', { name: 'Betala nu' })).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Ladda ner biljetter/ })).not.toBeInTheDocument()
   })
 })

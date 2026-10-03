@@ -109,10 +109,17 @@ function BookingSuccessPage() {
   const isConfirmed = booking.status === 'confirmed'
   const isPending = booking.buyerConfirmedPayment && !isConfirmed
   const payee = swishRecipientName ? `${swishRecipientName} (${swishNumber})` : swishNumber
+  const ticketsPdfUrl = `/api/public/bookings/${encodeURIComponent(booking.bookingReference)}/tickets.pdf?email=${encodeURIComponent(booking.email)}`
 
   return (
     <Layout>
       <div className="success-container">
+          {isConfirmed && (
+            <div className="success-banner">
+              <p className="success-banner-text">✓ Betalningen är bekräftad! Dina biljetter är klara.</p>
+            </div>
+          )}
+
           {/* Green success banner when buyer has confirmed payment */}
           {isPending && (
             <div className="success-banner">
@@ -123,7 +130,18 @@ function BookingSuccessPage() {
           )}
           
           <div className={`success-message ${isPending ? 'compact' : ''}`}>
-            {!isPending && <h2>Tack för din reservation!</h2>}
+            {!isPending && <h2>{isConfirmed ? 'Dina biljetter' : 'Tack för din reservation!'}</h2>}
+
+            {isConfirmed && (
+              <div className="payment-action-inline">
+                <a className="btn btn-primary btn-large" href={ticketsPdfUrl} download>
+                  Ladda ner biljetter (PDF)
+                </a>
+                <p className="payment-note">
+                  Visa QR-koden på biljetten vid entrén. Biljetterna har också skickats till din e-post.
+                </p>
+              </div>
+            )}
 
             {/* Payment first: on a phone everything below the reference box is off-screen */}
             {!isConfirmed && !paymentInitiated && (
@@ -180,9 +198,11 @@ function BookingSuccessPage() {
               <h3>Din bokningsreferens:</h3>
               <div className="reference-code">{booking.bookingReference}</div>
               <p className="reference-warning">
-                {isPending
-                  ? 'Ange referensen som meddelande om du swishar.'
-                  : 'Spara denna referens! Du behöver den för att bekräfta din betalning.'}
+                {isConfirmed
+                  ? 'Ange bokningsreferensen om du har frågor om din bokning.'
+                  : isPending
+                    ? 'Ange referensen som meddelande om du swishar.'
+                    : 'Spara denna referens! Du behöver den för att bekräfta din betalning.'}
               </p>
             </div>
           </div>
@@ -197,27 +217,9 @@ function BookingSuccessPage() {
               <li><strong>Tid:</strong> {booking.show?.startTime}-{booking.show?.endTime}</li>
               <li><strong>Ordinariebiljetter:</strong> {booking.adultTickets} st</li>
               <li><strong>Studentbiljetter:</strong> {booking.studentTickets} st</li>
-              <li><strong>Totalt att betala:</strong> {booking.totalAmount} kr</li>
+              <li><strong>{isConfirmed ? 'Totalt betalt' : 'Totalt att betala'}:</strong> {booking.totalAmount} kr</li>
             </ul>
           </div>
-          
-          {isConfirmed && (
-            <div className="payment-status">
-              <p className="status-confirmed">✓ Betalning bekräftad! Dina biljetter är säkra.</p>
-              {booking.tickets && booking.tickets.length > 0 && (
-                <div className="ticket-references">
-                  <h4>Dina biljettreferenser:</h4>
-                  <ul>
-                    {booking.tickets.map((ticket: any) => (
-                      <li key={ticket.id}>
-                        <strong>{ticket.ticketReference}</strong> - {ticket.ticketType === 'normal' ? 'Ordinarie' : 'Student'}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
           
           {isPending && (
             <div className="payment-status">
