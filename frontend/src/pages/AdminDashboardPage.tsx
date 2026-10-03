@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import adminApi from '../services/adminApi'
 import { BookingResponse } from '../types/booking'
+import ReceiptModal from '../components/ReceiptModal'
 import Layout from '../components/Layout'
 import './AdminDashboardPage.css'
 
@@ -21,6 +22,7 @@ function AdminDashboardPage() {
   // click landing before React re-renders; the state drives the disabled button.
   const confirmingRef = useRef<Set<number>>(new Set())
   const [confirmingIds, setConfirmingIds] = useState<Set<number>>(new Set())
+  const [receiptBooking, setReceiptBooking] = useState<BookingResponse | null>(null)
   
   // Calculate stats
   const stats = {
@@ -375,6 +377,8 @@ function AdminDashboardPage() {
                             <td>
                               {booking.status === 'confirmed' ? (
                                 <span className="status-confirmed">Bekräftad</span>
+                              ) : booking.receiptUploadedAt ? (
+                                <span className="status-pending">Kvitto inskickat</span>
                               ) : booking.buyerConfirmedPayment ? (
                                 <span className="status-pending">Väntar på bekräftelse</span>
                               ) : (
@@ -382,6 +386,14 @@ function AdminDashboardPage() {
                               )}
                             </td>
                             <td className="actions">
+                              {booking.receiptUploadedAt && (
+                                <button
+                                  onClick={() => setReceiptBooking(booking)}
+                                  className="btn btn-small btn-info"
+                                >
+                                  🧾 Kvitto
+                                </button>
+                              )}
                               {booking.status !== 'confirmed' ? (
                                 <>
                                   <button
@@ -431,6 +443,17 @@ function AdminDashboardPage() {
           )}
         </div>
       </div>
+      {receiptBooking && (
+        <ReceiptModal
+          booking={receiptBooking}
+          confirming={confirmingIds.has(receiptBooking.id!)}
+          onConfirm={async () => {
+            await handleConfirmPayment(receiptBooking.id!)
+            setReceiptBooking(null)
+          }}
+          onClose={() => setReceiptBooking(null)}
+        />
+      )}
     </Layout>
   )
 }

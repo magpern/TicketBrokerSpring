@@ -56,6 +56,8 @@ public class Booking {
     private Boolean swishPaymentInitiated = false;
     
     private LocalDateTime swishPaymentInitiatedAt;
+
+    private LocalDateTime receiptUploadedAt;
     
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
