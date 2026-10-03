@@ -1,0 +1,483 @@
+/* Admin booking list: a table-like grid on desktop that restacks into cards on phones.
+   Classes are prefixed abl- because all CSS in this app is global. */
+
+.abl {
+  text-align: left;
+}
+
+.abl-toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.abl-chips {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.abl-chip {
+  border: 1px solid #e5c7c7;
+  background: #fff;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #444;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.abl-chip b {
+  margin-left: 4px;
+}
+
+.abl-chip-review {
+  border-color: #f59e0b;
+  color: #92400e;
+  background: #fffbeb;
+}
+
+.abl-chip.active {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.abl-search {
+  margin-left: auto;
+  width: 300px;
+  max-width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-size: 0.95rem;
+  background: #fff;
+}
+
+.abl-empty {
+  color: #666;
+}
+
+.abl-show {
+  background: #fff;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  overflow: visible;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.abl-show-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 16px;
+  background: #fff5f5;
+  border: none;
+  border-bottom: 1px solid #f3dede;
+  border-radius: 14px 14px 0 0;
+  cursor: pointer;
+  text-align: left;
+  font: inherit;
+}
+
+.abl-show-head h4 {
+  margin: 0;
+  color: #dc2626;
+  font-size: 1.15rem;
+}
+
+.abl-meta {
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.abl-flag {
+  background: #fffbeb;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.abl-caret {
+  margin-left: auto;
+  color: #999;
+}
+
+.abl-collapsed {
+  margin: 0;
+  padding: 12px 16px;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.abl-row {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) 130px 90px 200px 250px;
+  align-items: center;
+  column-gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f5ecec;
+  font-size: 0.93rem;
+}
+
+.abl-row:last-child {
+  border-bottom: none;
+}
+
+.abl-head {
+  color: #9b1c1c;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.abl-row.need {
+  box-shadow: inset 4px 0 0 #f59e0b;
+}
+
+.abl-right {
+  text-align: right;
+}
+
+.abl-ref {
+  font-weight: 700;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.abl-who {
+  min-width: 0;
+}
+
+.abl-name {
+  display: block;
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: inherit;
+  text-align: left;
+  cursor: default;
+}
+
+.abl-contact {
+  display: block;
+  color: #888;
+  font-size: 0.82rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.abl-st {
+  display: inline-block;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.abl-st-review {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fdba74;
+}
+
+.abl-st-pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.abl-st-reserved {
+  background: #f3f4f6;
+  color: #6b7280;
+}
+
+.abl-st-confirmed {
+  background: #d1fae5;
+  color: #047857;
+}
+
+.abl-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.abl-btn {
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  cursor: pointer;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  color: #374151;
+}
+
+.abl-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.abl-btn-confirm {
+  background: #10b981;
+  border-color: #10b981;
+  color: #fff;
+}
+
+.abl-btn-receipt {
+  border-color: #10b981;
+  color: #047857;
+}
+
+.abl-more {
+  position: relative;
+}
+
+.abl-more-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fff;
+  color: #555;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.abl-menu {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  z-index: 20;
+  width: 220px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+
+.abl-menu > * {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  text-align: left;
+  font: inherit;
+  font-size: 0.9rem;
+  color: #374151;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.abl-menu > * + * {
+  border-top: 1px solid #f3f4f6;
+}
+
+.abl-menu > *:hover {
+  background: #f9fafb;
+}
+
+.abl-menu .abl-danger {
+  color: #dc2626;
+}
+
+.abl-mobile-only,
+.abl-details {
+  display: none;
+}
+
+/* Visible only on phones, but kept in the accessible name everywhere */
+.abl-label-extra {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* Phones: one card per booking, contact details behind a tap on the name */
+@media (max-width: 700px) {
+  .abl-desktop-only,
+  .abl-head {
+    display: none;
+  }
+
+  .abl-mobile-only {
+    display: inline;
+  }
+
+  .abl-label-extra {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+  }
+
+  .abl-toolbar {
+    gap: 8px;
+  }
+
+  .abl-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 2px;
+  }
+
+  /* Most useful filter first on a small screen */
+  .abl-chip-all {
+    order: 1;
+  }
+
+  .abl-search {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .abl-show {
+    background: none;
+    box-shadow: none;
+  }
+
+  .abl-show-head {
+    flex-wrap: wrap;
+    gap: 6px 8px;
+    padding: 10px 6px 6px;
+    background: none;
+    border: none;
+  }
+
+  .abl-show-head .abl-meta {
+    order: 3;
+    width: 100%;
+    font-size: 0.8rem;
+  }
+
+  .abl-collapsed {
+    background: #fff;
+    border-radius: 12px;
+  }
+
+  /* Ref spans two columns so the first column is only as wide as the ticket count,
+     which keeps the amount right after it */
+  .abl-row {
+    grid-template-columns: max-content max-content 1fr;
+    grid-template-areas:
+      'ref ref status'
+      'who who who'
+      'tickets amount .'
+      'details details details'
+      'actions actions actions';
+    column-gap: 4px;
+    row-gap: 2px;
+    margin: 8px 0;
+    padding: 10px 12px;
+    background: #fff;
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  .abl-row.need {
+    box-shadow: inset 4px 0 0 #f59e0b, 0 1px 4px rgba(0, 0, 0, 0.06);
+  }
+
+  .abl-ref {
+    grid-area: ref;
+    color: #555;
+    font-size: 0.9rem;
+  }
+
+  .abl-status {
+    grid-area: status;
+    justify-self: end;
+  }
+
+  .abl-who {
+    grid-area: who;
+    margin-top: 4px;
+  }
+
+  .abl-name {
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .abl-expand {
+    color: #999;
+    font-size: 0.75rem;
+  }
+
+  .abl-tickets {
+    grid-area: tickets;
+    color: #666;
+    font-size: 0.86rem;
+  }
+
+  .abl-amount {
+    grid-area: amount;
+    color: #666;
+    font-size: 0.86rem;
+  }
+
+  .abl-amount::before {
+    content: '· ';
+  }
+
+  .abl-details {
+    grid-area: details;
+    display: grid;
+    gap: 6px;
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px dashed #eee;
+    font-size: 0.88rem;
+  }
+
+  .abl-details small {
+    display: block;
+    color: #888;
+    font-size: 0.78rem;
+  }
+
+  .abl-details a {
+    color: #2563eb;
+    text-decoration: none;
+  }
+
+  .abl-actions {
+    grid-area: actions;
+    margin-top: 9px;
+  }
+
+  .abl-actions .abl-btn {
+    flex: 1;
+    padding: 10px;
+    font-size: 0.9rem;
+  }
+
+  .abl-more-btn {
+    width: 40px;
+    height: 40px;
+  }
+}
