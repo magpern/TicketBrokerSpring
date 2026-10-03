@@ -77,7 +77,8 @@ describe('AdminDashboardPage payment confirmation', () => {
     request.resolve({ data: { ...reservedBooking, status: 'confirmed' } })
 
     expect(await screen.findByText('Betalning bekräftad!')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Bekräfta/ })).not.toBeInTheDocument()
+    // The "Bekräftade" filter chip also matches /Bekräfta/, so check the confirm button itself
+    expect(screen.queryByRole('button', { name: 'Bekräfta betalning' })).not.toBeInTheDocument()
   })
 
   it('re-enables the button when the request fails', async () => {
