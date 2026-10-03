@@ -2,6 +2,7 @@ package com.ticketbroker.service;
 
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Objects;
 
 import org.springframework.core.io.ByteArrayResource;
@@ -101,6 +102,85 @@ public class EmailService {
     private String formatDateForSwedish(LocalDate date) {
         String[] months = { "jan", "feb", "mar", "apr", "maj", "jun", "jul", "aug", "sep", "okt", "nov", "dec" };
         return String.format("%d %s %d", date.getDayOfMonth(), months[date.getMonthValue() - 1], date.getYear());
+    }
+
+    /**
+     * What the organisers need to know when a buyer says they have paid. Captured on the request
+     * thread because the booking's show is lazily loaded and the email is sent asynchronously.
+     */
+    public record PaymentNotice(String bookingReference, String fullName, String email, String phone,
+            LocalDate showDate, String startTime, String endTime, int adultTickets, int studentTickets,
+            int totalAmount, byte[] receiptJpeg, boolean receiptReplaced) {
+
+        public static PaymentNotice of(Booking booking, byte[] receiptJpeg, boolean receiptReplaced) {
+            return new PaymentNotice(booking.getBookingReference(), booking.getFullName(), booking.getEmail(),
+                    booking.getPhone(), booking.getShow().getDate(), booking.getShow().getStartTime(),
+                    booking.getShow().getEndTime(), booking.getAdultTickets(), booking.getStudentTickets(),
+                    booking.getTotalAmount(), receiptJpeg, receiptReplaced);
+        }
+
+        public boolean hasReceipt() {
+            return receiptJpeg != null;
+        }
+    }
+
+    public void sendBuyerPaymentNotice(PaymentNotice notice, List<String> recipients, String adminUrl)
+            throws MessagingException {
+        if (recipients.isEmpty()) {
+            return;
+        }
+        MimeMessage message = mailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+
+        helper.setFrom(recipients.get(0));
+        helper.setTo(recipients.toArray(String[]::new));
+        String what = !notice.hasReceipt() ? "Betalning anmäld"
+                : notice.receiptReplaced() ? "Nytt kvitto" : "Kvitto inskickat";
+        helper.setSubject(what + " - " + notice.bookingReference() + " (" + notice.fullName() + ")");
+
+        String intro = !notice.hasReceipt()
+                ? "%s har markerat bokning <strong>%s</strong> som betald, utan att skicka in något kvitto."
+                : notice.receiptReplaced()
+                        ? "%s har skickat in ett nytt kvitto för bokning <strong>%s</strong> (ersätter det tidigare)."
+                        : "%s har skickat in ett kvitto för bokning <strong>%s</strong>.";
+        String tickets = notice.adultTickets() + " ordinarie, " + notice.studentTickets() + " student";
+        String show = (notice.showDate() != null ? formatDateForSwedish(notice.showDate()) + ", " : "")
+                + notice.startTime() + "-" + notice.endTime();
+        String receipt = notice.hasReceipt()
+                ? "<h3>Kvitto</h3><p><img src=\"cid:receipt\" alt=\"Kvitto\" style=\"max-width: 320px; border: 1px solid #ddd; border-radius: 8px;\"></p>"
+                : "";
+
+        String html = String.format("""
+                <h2>%s</h2>
+                <p>%s</p>
+                <ul>
+                    <li><strong>Namn:</strong> %s</li>
+                    <li><strong>E-post:</strong> %s</li>
+                    <li><strong>Telefon:</strong> %s</li>
+                    <li><strong>Föreställning:</strong> %s</li>
+                    <li><strong>Biljetter:</strong> %s</li>
+                    <li><strong>Belopp att betala:</strong> %d kr</li>
+                    <li><strong>Swish-meddelande ska vara:</strong> %s</li>
+                </ul>
+                <p style="background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 10px 12px;">
+                    Kontrollera att %d kr har kommit in i Swish med meddelandet <strong>%s</strong> innan du bekräftar betalningen.
+                </p>
+                %s
+                <p><a href="%s" style="background-color: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block;">Öppna adminpanelen</a></p>
+                <p style="color: #6b7280; font-size: 12px;">Administratören kan stänga av dessa mail under Inställningar i adminpanelen.</p>
+                """,
+                esc(what),
+                String.format(intro, esc(notice.fullName()), esc(notice.bookingReference())),
+                esc(notice.fullName()), esc(notice.email()), esc(notice.phone()), esc(show), esc(tickets),
+                notice.totalAmount(), esc(notice.bookingReference()),
+                notice.totalAmount(), esc(notice.bookingReference()),
+                receipt, esc(adminUrl));
+        helper.setText(html, true);
+        if (notice.hasReceipt()) {
+            helper.addInline("receipt", new ByteArrayResource(notice.receiptJpeg()), "image/jpeg");
+        }
+
+        mailSender.send(message);
     }
 
     public void sendAdminNotification(Booking booking) throws MessagingException {

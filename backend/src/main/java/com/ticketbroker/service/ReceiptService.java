@@ -38,6 +38,9 @@ public class ReceiptService {
         }
     }
 
+    public record SavedReceipt(LocalDateTime uploadedAt, byte[] imageData, boolean replaced) {
+    }
+
     private final BookingReceiptRepository receiptRepository;
     private final BookingService bookingService;
 
@@ -52,11 +55,12 @@ public class ReceiptService {
      * anything that isn't an image and strips metadata such as GPS location.
      */
     @Transactional
-    public LocalDateTime saveReceipt(Booking booking, byte[] upload) {
+    public SavedReceipt saveReceipt(Booking booking, byte[] upload) {
         byte[] jpeg = toJpeg(scaleDown(decode(upload)));
         LocalDateTime now = LocalDateTime.now();
 
-        BookingReceipt receipt = receiptRepository.findByBookingId(booking.getId()).orElseGet(BookingReceipt::new);
+        Optional<BookingReceipt> existing = receiptRepository.findByBookingId(booking.getId());
+        BookingReceipt receipt = existing.orElseGet(BookingReceipt::new);
         receipt.setBookingId(booking.getId());
         receipt.setContentType("image/jpeg");
         receipt.setImageData(jpeg);
@@ -65,7 +69,7 @@ public class ReceiptService {
 
         booking.setReceiptUploadedAt(now);
         bookingService.confirmPaymentByBuyer(booking);
-        return now;
+        return new SavedReceipt(now, jpeg, existing.isPresent());
     }
 
     public Optional<BookingReceipt> findReceipt(Long bookingId) {

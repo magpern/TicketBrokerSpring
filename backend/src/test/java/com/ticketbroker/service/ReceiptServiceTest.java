@@ -53,7 +53,9 @@ class ReceiptServiceTest {
     void saveReceipt_ShouldStoreAScaledDownJpegAndMarkBookingPaidByBuyer() throws Exception {
         when(receiptRepository.findByBookingId(27L)).thenReturn(Optional.empty());
 
-        LocalDateTime uploadedAt = receiptService.saveReceipt(booking, png(2160, 3840, BufferedImage.TYPE_INT_ARGB));
+        ReceiptService.SavedReceipt result = receiptService.saveReceipt(booking, png(2160, 3840, BufferedImage.TYPE_INT_ARGB));
+        LocalDateTime uploadedAt = result.uploadedAt();
+        assertThat(result.replaced()).isFalse();
 
         ArgumentCaptor<BookingReceipt> saved = ArgumentCaptor.forClass(BookingReceipt.class);
         verify(receiptRepository).save(saved.capture());
@@ -79,7 +81,8 @@ class ReceiptServiceTest {
         existing.setImageData(new byte[] { 1 });
         when(receiptRepository.findByBookingId(27L)).thenReturn(Optional.of(existing));
 
-        receiptService.saveReceipt(booking, png(400, 800, BufferedImage.TYPE_INT_RGB));
+        ReceiptService.SavedReceipt result = receiptService.saveReceipt(booking, png(400, 800, BufferedImage.TYPE_INT_RGB));
+        assertThat(result.replaced()).isTrue();
 
         ArgumentCaptor<BookingReceipt> saved = ArgumentCaptor.forClass(BookingReceipt.class);
         verify(receiptRepository).save(saved.capture());

@@ -15,6 +15,8 @@ interface Settings {
   swishRecipientName: string
   contactEmail: string
   adminEmail: string
+  // 'false' turns off the administrator's copy of "buyer has paid" emails
+  notifyAdminOnBuyerPayment: string
   maxTicketsPerBooking: string
   classPhotoData?: string
   classPhotoContentType?: string
@@ -35,6 +37,7 @@ function AdminSettingsPage() {
     swishRecipientName: '',
     contactEmail: '',
     adminEmail: '',
+    notifyAdminOnBuyerPayment: 'true',
     maxTicketsPerBooking: '',
   })
   const [classPhotoFile, setClassPhotoFile] = useState<File | null>(null)
@@ -63,6 +66,7 @@ function AdminSettingsPage() {
         swishRecipientName: data.swishRecipientName || '',
         contactEmail: data.contactEmail || '',
         adminEmail: data.adminEmail || '',
+        notifyAdminOnBuyerPayment: data.notifyAdminOnBuyerPayment === 'false' ? 'false' : 'true',
         maxTicketsPerBooking: data.maxTicketsPerBooking || '',
         classPhotoData: data.classPhotoData || '',
         classPhotoContentType: data.classPhotoContentType || '',
@@ -101,6 +105,7 @@ function AdminSettingsPage() {
         swish_recipient_name: settings.swishRecipientName,
         contact_email: settings.contactEmail,
         admin_email: settings.adminEmail,
+        notify_admin_on_buyer_payment: settings.notifyAdminOnBuyerPayment,
         max_tickets_per_booking: settings.maxTicketsPerBooking,
       }
 
@@ -339,6 +344,19 @@ function AdminSettingsPage() {
                     onChange={(e) => handleChange('adminEmail', e.target.value)}
                     required
                   />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="notifyAdminOnBuyerPayment" className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      id="notifyAdminOnBuyerPayment"
+                      checked={settings.notifyAdminOnBuyerPayment !== 'false'}
+                      onChange={(e) => handleChange('notifyAdminOnBuyerPayment', e.target.checked ? 'true' : 'false')}
+                    />{' '}
+                    Skicka e-post till administratören när en köpare har betalat eller skickat in ett kvitto
+                  </label>
+                  <small>Gruppens egen e-post (avsändaradressen) får alltid ett exemplar.</small>
                 </div>
               </div>
 
