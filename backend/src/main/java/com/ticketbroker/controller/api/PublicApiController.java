@@ -1,13 +1,18 @@
 package com.ticketbroker.controller.api;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -25,6 +30,7 @@ import com.ticketbroker.dto.ContactRequest;
 import com.ticketbroker.dto.ShowResponse;
 import com.ticketbroker.dto.TicketValidationRequest;
 import com.ticketbroker.model.Booking;
+import com.ticketbroker.model.BookingStatus;
 import com.ticketbroker.model.Show;
 import com.ticketbroker.model.Ticket;
 import com.ticketbroker.repository.ShowRepository;
@@ -150,17 +156,29 @@ public class PublicApiController {
 
     @GetMapping("/bookings/{reference}")
     public ResponseEntity<BookingResponse> getBooking(@PathVariable String reference,
-            @RequestParam(required = false) String email) {
-        Booking booking;
-        if (email != null) {
-            booking = bookingService.findByReferenceAndEmail(reference, email)
-                    .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
-        } else {
-            booking = bookingService.findByReference(reference)
-                    .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
-        }
+            @RequestParam String email) {
+        Booking booking = bookingService.findByReferenceAndEmail(reference, email)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
         return ResponseEntity.ok(BookingResponse.fromEntity(booking));
+    }
+
+    @GetMapping("/bookings/{reference}/tickets.pdf")
+    public ResponseEntity<byte[]> downloadTickets(@PathVariable String reference,
+            @RequestParam String email) throws IOException {
+        Optional<Booking> found = bookingService.findByReferenceAndEmail(reference, email);
+        if (found.isEmpty() || found.get().getStatus() != BookingStatus.CONFIRMED
+                || found.get().getTickets().isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Booking booking = found.get();
+
+        byte[] pdf = pdfService.generateTicketsPdf(booking);
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
+                        .filename("biljetter_" + booking.getBookingReference() + ".pdf").build().toString())
+                .body(pdf);
     }
 
     @PostMapping("/bookings/{reference}/initiate-payment")
