@@ -9,6 +9,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.ticketbroker.dto.BookingRequest;
 import com.ticketbroker.dto.BookingResponse;
@@ -39,6 +41,7 @@ import com.ticketbroker.service.BookingService;
 import com.ticketbroker.service.EmailService;
 import com.ticketbroker.service.PdfService;
 import com.ticketbroker.service.QrCodeService;
+import com.ticketbroker.service.ReceiptService;
 import com.ticketbroker.service.SettingsService;
 import com.ticketbroker.service.TicketService;
 import com.ticketbroker.util.SwishUrlGenerator;
@@ -58,13 +61,14 @@ public class PublicApiController {
     private final SettingsService settingsService;
     private final SwishUrlGenerator swishUrlGenerator;
     private final BookingNotificationService bookingNotificationService;
+    private final ReceiptService receiptService;
     private final String appBaseUrl;
 
     public PublicApiController(ShowRepository showRepository, BookingService bookingService,
             TicketService ticketService, EmailService emailService,
             PdfService pdfService, QrCodeService qrCodeService,
             SettingsService settingsService, SwishUrlGenerator swishUrlGenerator,
-            BookingNotificationService bookingNotificationService,
+            BookingNotificationService bookingNotificationService, ReceiptService receiptService,
             @Value("${app.base-url}") String appBaseUrl) {
         this.showRepository = showRepository;
         this.bookingService = bookingService;
@@ -75,6 +79,7 @@ public class PublicApiController {
         this.settingsService = settingsService;
         this.swishUrlGenerator = swishUrlGenerator;
         this.bookingNotificationService = bookingNotificationService;
+        this.receiptService = receiptService;
         this.appBaseUrl = appBaseUrl;
     }
 
@@ -161,6 +166,39 @@ public class PublicApiController {
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
 
         return ResponseEntity.ok(BookingResponse.fromEntity(booking));
+    }
+
+    @PostMapping(value = "/bookings/{reference}/receipt", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<Map<String, Object>> uploadReceipt(@PathVariable String reference,
+            @RequestParam String email, @RequestParam("receipt") MultipartFile receipt) throws IOException {
+        Optional<Booking> found = bookingService.findByReferenceAndEmail(reference, email);
+        if (found.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        Booking booking = found.get();
+        Map<String, Object> body = new HashMap<>();
+        if (booking.getStatus() == BookingStatus.CONFIRMED) {
+            body.put("error", "Betalningen är redan bekräftad.");
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
+        }
+        try {
+            body.put("receiptUploadedAt", receiptService.saveReceipt(booking, receipt.getBytes()));
+            return ResponseEntity.ok(body);
+        } catch (ReceiptService.InvalidReceiptException e) {
+            body.put("error", e.getMessage());
+            return ResponseEntity.badRequest().body(body);
+        }
+    }
+
+    @GetMapping("/bookings/{reference}/receipt")
+    public ResponseEntity<byte[]> getReceipt(@PathVariable String reference, @RequestParam String email) {
+        return bookingService.findByReferenceAndEmail(reference, email)
+                .flatMap(booking -> receiptService.findReceipt(booking.getId()))
+                .map(receipt -> ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(receipt.getContentType()))
+                        .cacheControl(CacheControl.noStore())
+                        .body(receipt.getImageData()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @GetMapping("/bookings/{reference}/tickets.pdf")

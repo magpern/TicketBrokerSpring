@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -33,6 +34,7 @@ import com.ticketbroker.model.Ticket;
 import com.ticketbroker.repository.BookingRepository;
 import com.ticketbroker.repository.ShowRepository;
 import com.ticketbroker.repository.TicketRepository;
+import com.ticketbroker.service.ReceiptService;
 import com.ticketbroker.service.AuditService;
 import com.ticketbroker.service.BookingService;
 import com.ticketbroker.service.EmailService;
@@ -55,6 +57,7 @@ public class AdminApiController {
     private final ExcelService excelService;
     private final SettingsService settingsService;
     private final AuditService auditService;
+    private final ReceiptService receiptService;
     private final String appBaseUrl;
     private static final DateTimeFormatter SHOW_DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -63,7 +66,8 @@ public class AdminApiController {
             BookingService bookingService, TicketService ticketService,
             EmailService emailService, PdfService pdfService,
             ExcelService excelService, SettingsService settingsService,
-            AuditService auditService, @Value("${app.base-url}") String appBaseUrl) {
+            AuditService auditService, ReceiptService receiptService,
+            @Value("${app.base-url}") String appBaseUrl) {
         this.bookingRepository = bookingRepository;
         this.ticketRepository = ticketRepository;
         this.showRepository = showRepository;
@@ -74,6 +78,7 @@ public class AdminApiController {
         this.excelService = excelService;
         this.settingsService = settingsService;
         this.auditService = auditService;
+        this.receiptService = receiptService;
         this.appBaseUrl = appBaseUrl;
     }
 
@@ -230,6 +235,16 @@ public class AdminApiController {
             error.put("error", "Ett fel uppstod vid omssändning av bekräftelse.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
+    }
+
+    @GetMapping("/bookings/{id}/receipt")
+    public ResponseEntity<byte[]> getReceipt(@PathVariable Long id) {
+        return receiptService.findReceipt(id)
+                .map(receipt -> ResponseEntity.ok()
+                        .contentType(MediaType.parseMediaType(receipt.getContentType()))
+                        .cacheControl(CacheControl.noStore())
+                        .body(receipt.getImageData()))
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping("/bookings/{id}/resend-tickets")

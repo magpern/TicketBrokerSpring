@@ -40,6 +40,7 @@ export interface BookingResponse {
   buyerConfirmedPayment: boolean;
   swishPaymentInitiated: boolean;
   swishPaymentInitiatedAt: string | null;
+  receiptUploadedAt?: string | null;
   createdAt: string;
   confirmedAt: string | null;
   show: Show;

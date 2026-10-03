@@ -20,6 +20,7 @@ public class BookingResponse {
     private Boolean buyerConfirmedPayment;
     private Boolean swishPaymentInitiated;
     private LocalDateTime swishPaymentInitiatedAt;
+    private LocalDateTime receiptUploadedAt;
     private LocalDateTime createdAt;
     private LocalDateTime confirmedAt;
     private ShowResponse show;
@@ -39,6 +40,7 @@ public class BookingResponse {
         response.setBuyerConfirmedPayment(booking.getBuyerConfirmedPayment());
         response.setSwishPaymentInitiated(booking.getSwishPaymentInitiated());
         response.setSwishPaymentInitiatedAt(booking.getSwishPaymentInitiatedAt());
+        response.setReceiptUploadedAt(booking.getReceiptUploadedAt());
         response.setCreatedAt(booking.getCreatedAt());
         response.setConfirmedAt(booking.getConfirmedAt());
         response.setShow(ShowResponse.fromEntity(booking.getShow()));

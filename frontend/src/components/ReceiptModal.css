@@ -1,0 +1,135 @@
+.receipt-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(17, 24, 39, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.receipt-modal {
+  background: #fff;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 860px;
+  max-height: calc(100vh - 32px);
+  overflow: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  text-align: left;
+}
+
+.receipt-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 22px;
+  border-bottom: 1px solid #eee;
+}
+
+.receipt-modal-header h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #111;
+}
+
+.receipt-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  color: #888;
+  cursor: pointer;
+}
+
+.receipt-modal-body {
+  display: flex;
+  gap: 24px;
+  padding: 22px;
+}
+
+.receipt-modal-image {
+  flex: none;
+  width: 300px;
+  max-height: 70vh;
+  overflow: auto;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  background: #fafafa;
+}
+
+.receipt-modal-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.receipt-modal-image p {
+  padding: 24px;
+  color: #6b7280;
+}
+
+.receipt-modal-facts {
+  flex: 1;
+}
+
+.receipt-modal-facts h3 {
+  margin: 0 0 12px;
+  font-size: 1rem;
+  color: #374151;
+}
+
+.receipt-fact {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.receipt-hint {
+  background: #fffbeb;
+  border: 1px solid #fcd34d;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #92400e;
+  font-size: 0.88rem;
+  margin: 14px 0;
+}
+
+.receipt-modal-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.receipt-modal-buttons .btn {
+  flex: 1;
+}
+
+.receipt-confirmed {
+  flex: 1;
+  margin: 0;
+  color: #059669;
+  font-weight: 600;
+  align-self: center;
+}
+
+.receipt-small {
+  color: #6b7280;
+  font-size: 0.82rem;
+  margin-top: 8px;
+}
+
+@media (max-width: 700px) {
+  .receipt-modal-body {
+    flex-direction: column;
+  }
+
+  .receipt-modal-image {
+    width: 100%;
+  }
+}

@@ -156,30 +156,6 @@
   border-bottom: 1px solid #e5e7eb;
 }
 
-.payment-section {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  margin: 20px 0;
-}
-
-.swish-info {
-  background: #e8f5e8;
-  border: 1px solid #28a745;
-  border-radius: 6px;
-  padding: 15px;
-  margin: 15px 0;
-}
-
-.payment-status {
-  background: rgba(16, 185, 129, 0.1);
-  padding: 20px;
-  border-radius: 15px;
-  margin-bottom: 30px;
-  border: 2px solid #a7f3d0;
-}
-
 .status-confirmed {
   color: #059669;
   font-weight: 600;
@@ -203,6 +179,150 @@
 .btn-success:hover {
   background: #059669;
   transform: translateY(-2px);
+}
+
+/* Payment steps: 1. pay with Swish, 2. upload the Swish receipt */
+.step-card {
+  color: #333;
+  background: #fff;
+  border: 1px solid #f3d0d0;
+  border-radius: 14px;
+  padding: 14px;
+  margin: 12px 0;
+  text-align: left;
+}
+
+.step-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-size: 1.08rem;
+  margin-bottom: 10px;
+}
+
+.step-num {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #dc2626;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.step-num.muted {
+  background: #9ca3af;
+}
+
+.step-num.done {
+  background: #10b981;
+}
+
+.step-card .payment-action-inline {
+  margin: 0;
+  text-align: center;
+}
+
+.step-card .payment-initiated {
+  margin-top: 0;
+  text-align: center;
+}
+
+.step-card .payment-note,
+.step-card p.step-text,
+.step-card p.receipt-text {
+  color: #666;
+}
+
+.step-text {
+  text-align: left;
+}
+
+.receipt-drop {
+  display: block;
+  border: 2px dashed #dc3545;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 10px;
+  text-align: center;
+  background: #fff7f7;
+  color: #b91c1c;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.receipt-drop small {
+  display: block;
+  font-weight: 400;
+  color: #777;
+  margin-top: 4px;
+}
+
+.receipt-drop.busy {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.receipt-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.receipt-thumb {
+  flex: none;
+  width: 74px;
+  max-height: 140px;
+  object-fit: cover;
+  object-position: top;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.receipt-text {
+  margin: 0 0 10px;
+}
+
+/* Qualified so it wins over the global .btn reset (border: none) */
+.step-card .btn-outline {
+  display: inline-block;
+  background: #fff;
+  color: #dc3545;
+  border: 2px solid #dc3545;
+  border-radius: 999px;
+  padding: 8px 20px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.link-button {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  background: none;
+  border: none;
+  color: #555;
+  font-size: 0.88rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.upload-error {
+  color: #b91c1c;
+  font-weight: 600;
+  margin: 10px 0 0;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 /* Responsive */

@@ -38,10 +38,13 @@ function booking(overrides: Record<string, unknown>) {
   }
 }
 
+let currentBooking: Record<string, unknown>
+
 function renderPage(bookingData: Record<string, unknown>) {
+  currentBooking = bookingData
   mockGet.mockImplementation((url: string) => {
     if (url === '/public/settings') return Promise.resolve({ data: { swishNumber: '0704910447' } })
-    return Promise.resolve({ data: bookingData })
+    return Promise.resolve({ data: currentBooking })
   })
   render(
     <MemoryRouter initialEntries={['/booking/success/BUTE6/kerstinclamp@gmail.com']}>
@@ -87,7 +90,7 @@ describe('BookingSuccessPage payment options', () => {
 
     expect(await screen.findByText(/Eller betala manuellt till 0704910447 med meddelandet BUTE6/)).toBeInTheDocument()
     expect(screen.queryByText(/012 345 67 89|Event Organizer/)).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Tryck här när du betalat/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Kan du inte ladda upp? Markera som betald ändå' })).toBeInTheDocument()
   })
 
   it('offers the tickets for download instead of payment once the admin has confirmed', async () => {
@@ -110,5 +113,60 @@ describe('BookingSuccessPage payment options', () => {
 
     expect(await screen.findByRole('button', { name: 'Betala nu' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: /Ladda ner biljetter/ })).not.toBeInTheDocument()
+  })
+
+  it('uploads a Swish screenshot and then shows it as the uploaded receipt', async () => {
+    renderPage(booking({}))
+    const input = await screen.findByLabelText(/Ladda upp skärmdump/)
+
+    mockPost.mockImplementation(() => {
+      currentBooking = booking({ buyerConfirmedPayment: true, receiptUploadedAt: '2026-10-03T11:05:00' })
+      return Promise.resolve({ data: { receiptUploadedAt: '2026-10-03T11:05:00' } })
+    })
+    const file = new File(['fake'], 'Screenshot.png', { type: 'image/png' })
+    fireEvent.change(input, { target: { files: [file] } })
+
+    expect(await screen.findByText('Kvitto uppladdat')).toBeInTheDocument()
+    const [url, body, config] = mockPost.mock.calls[0]
+    expect(url).toBe('/public/bookings/BUTE6/receipt?email=kerstinclamp%40gmail.com')
+    expect(body).toBeInstanceOf(FormData)
+    expect((body as FormData).get('receipt')).toBeInstanceOf(Blob)
+    expect(config.headers['Content-Type']).toBe('multipart/form-data')
+
+    expect(screen.getByText(/Vi har fått ditt kvitto/)).toBeInTheDocument()
+    expect(screen.getByAltText('Ditt uppladdade kvitto').getAttribute('src')).toContain(
+      '/api/public/bookings/BUTE6/receipt?email=kerstinclamp%40gmail.com'
+    )
+    expect(screen.getByLabelText('Byt bild')).toBeInTheDocument()
+    // Paying is still possible, but no longer the first step
+    expect(screen.getByRole('button', { name: 'Betala nu' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Markera som betald ändå/ })).not.toBeInTheDocument()
+  })
+
+  it('shows the reason when the server rejects the upload', async () => {
+    renderPage(booking({}))
+    const input = await screen.findByLabelText(/Ladda upp skärmdump/)
+    mockPost.mockRejectedValue({ response: { status: 400, data: { error: 'Filen är ingen bild.' } } })
+
+    fireEvent.change(input, { target: { files: [new File(['x'], 'doc.pdf', { type: 'application/pdf' })] } })
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Filen är ingen bild.')
+    expect(screen.queryByText('Kvitto uppladdat')).not.toBeInTheDocument()
+  })
+
+  it('still lets someone without a screenshot mark the booking as paid', async () => {
+    renderPage(booking({}))
+    const fallback = await screen.findByRole('button', { name: 'Kan du inte ladda upp? Markera som betald ändå' })
+    mockPost.mockImplementation(() => {
+      currentBooking = booking({ buyerConfirmedPayment: true })
+      return Promise.resolve({ data: {} })
+    })
+
+    fireEvent.click(fallback)
+
+    expect(await screen.findByText(/Vi har fått din bekräftelse/)).toBeInTheDocument()
+    expect(mockPost).toHaveBeenCalledWith('/public/bookings/BUTE6/confirm-payment?email=kerstinclamp@gmail.com')
+    // Uploading afterwards is still offered
+    expect(screen.getByLabelText(/Ladda upp skärmdump/)).toBeInTheDocument()
   })
 })
