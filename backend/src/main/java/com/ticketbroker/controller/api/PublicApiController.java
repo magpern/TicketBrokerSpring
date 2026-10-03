@@ -182,7 +182,10 @@ public class PublicApiController {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(body);
         }
         try {
-            body.put("receiptUploadedAt", receiptService.saveReceipt(booking, receipt.getBytes()));
+            ReceiptService.SavedReceipt saved = receiptService.saveReceipt(booking, receipt.getBytes());
+            bookingNotificationService.sendBuyerPaymentNotice(
+                    EmailService.PaymentNotice.of(booking, saved.imageData(), saved.replaced()));
+            body.put("receiptUploadedAt", saved.uploadedAt());
             return ResponseEntity.ok(body);
         } catch (ReceiptService.InvalidReceiptException e) {
             body.put("error", e.getMessage());
@@ -268,8 +271,14 @@ public class PublicApiController {
             @RequestParam String email) {
         Booking booking = bookingService.findByReferenceAndEmail(reference, email)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found"));
+        // Only the first "I've paid" is news to the organisers; repeat clicks shouldn't email again
+        boolean alreadyMarked = Boolean.TRUE.equals(booking.getBuyerConfirmedPayment())
+                || booking.getStatus() == BookingStatus.CONFIRMED;
 
         bookingService.confirmPaymentByBuyer(booking);
+        if (!alreadyMarked) {
+            bookingNotificationService.sendBuyerPaymentNotice(EmailService.PaymentNotice.of(booking, null, false));
+        }
 
         return ResponseEntity.ok(BookingResponse.fromEntity(booking));
     }

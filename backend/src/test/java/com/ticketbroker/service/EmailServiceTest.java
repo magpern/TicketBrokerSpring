@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.javamail.JavaMailSender;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Properties;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,7 +43,7 @@ class EmailServiceTest {
     @BeforeEach
     void setUp() {
         emailService = new EmailService(mailSender, settingsService);
-        when(mailSender.createMimeMessage()).thenAnswer(inv -> new MimeMessage(Session.getInstance(new Properties())));
+        lenient().when(mailSender.createMimeMessage()).thenAnswer(inv -> new MimeMessage(Session.getInstance(new Properties())));
         lenient().when(settingsService.getValue(anyString(), anyString()))
                 .thenAnswer(inv -> inv.getArgument(1));
         lenient().when(settingsService.getValue("concert_name", "Klasskonsert 24C")).thenReturn("Tjusés Klasskonsert");
@@ -111,6 +112,63 @@ class EmailServiceTest {
         String html = htmlOf(sentMessage());
         assertThat(html).doesNotContain("<script>", "<b>070</b>", "href=\"https://evil.example\"");
         assertThat(html).contains("Hej!<br>&lt;script&gt;alert(1)&lt;/script&gt;", "&lt;b&gt;070&lt;/b&gt;");
+    }
+
+    @Test
+    void buyerPaymentNotice_ShouldEmbedTheReceiptAndGoToAllRecipients() throws Exception {
+        booking.setFirstName(INJECTED_LINK);
+        byte[] jpeg = { (byte) 0xFF, (byte) 0xD8, (byte) 0xFF, 1, 2, 3 };
+
+        emailService.sendBuyerPaymentNotice(EmailService.PaymentNotice.of(booking, jpeg, false),
+                List.of("klasskonsertgruppen@gmail.com", "oliver.ahlstrand@icloud.com"), "https://24c.online/admin");
+
+        MimeMessage message = sentMessage();
+        assertThat(message.getSubject()).startsWith("Kvitto inskickat - DPARV (");
+        assertThat(message.getAllRecipients()).extracting(Object::toString)
+                .containsExactly("klasskonsertgruppen@gmail.com", "oliver.ahlstrand@icloud.com");
+        String html = htmlOf(message);
+        assertThat(html).contains("har skickat in ett kvitto för bokning <strong>DPARV</strong>", "cid:receipt",
+                "Kontrollera att 500 kr har kommit in i Swish med meddelandet <strong>DPARV</strong>",
+                "href=\"https://24c.online/admin\"", "1 dec 2026, 18:00-19:00");
+        assertThat(html).doesNotContain("href=\"https://evil.example\"");
+        assertThat(inlinePart(message, "<receipt>")).isNotNull();
+    }
+
+    @Test
+    void buyerPaymentNotice_ShouldSayWhenNoReceiptWasSentOrWhenItWasReplaced() throws Exception {
+        emailService.sendBuyerPaymentNotice(EmailService.PaymentNotice.of(booking, null, false),
+                List.of("klasskonsertgruppen@gmail.com"), "https://24c.online/admin");
+        MimeMessage withoutReceipt = sentMessage();
+        assertThat(withoutReceipt.getSubject()).isEqualTo("Betalning anmäld - DPARV (Anna Svensson)");
+        assertThat(htmlOf(withoutReceipt)).contains("utan att skicka in något kvitto").doesNotContain("cid:receipt");
+
+        org.mockito.Mockito.clearInvocations(mailSender);
+        emailService.sendBuyerPaymentNotice(EmailService.PaymentNotice.of(booking, new byte[] { 1 }, true),
+                List.of("klasskonsertgruppen@gmail.com"), "https://24c.online/admin");
+        assertThat(sentMessage().getSubject()).isEqualTo("Nytt kvitto - DPARV (Anna Svensson)");
+    }
+
+    @Test
+    void buyerPaymentNotice_ShouldSendNothingWithoutRecipients() throws Exception {
+        emailService.sendBuyerPaymentNotice(EmailService.PaymentNotice.of(booking, null, false), List.of(),
+                "https://24c.online/admin");
+
+        org.mockito.Mockito.verify(mailSender, org.mockito.Mockito.never()).send(org.mockito.ArgumentMatchers.any(MimeMessage.class));
+    }
+
+    private static Part inlinePart(Part part, String contentId) throws Exception {
+        if (part instanceof jakarta.mail.internet.MimeBodyPart body && contentId.equals(body.getContentID())) {
+            return part;
+        }
+        if (part.getContent() instanceof Multipart multipart) {
+            for (int i = 0; i < multipart.getCount(); i++) {
+                Part found = inlinePart(multipart.getBodyPart(i), contentId);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     private MimeMessage sentMessage() throws Exception {

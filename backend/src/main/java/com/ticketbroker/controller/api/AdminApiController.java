@@ -36,6 +36,7 @@ import com.ticketbroker.repository.ShowRepository;
 import com.ticketbroker.repository.TicketRepository;
 import com.ticketbroker.service.ReceiptService;
 import com.ticketbroker.service.AuditService;
+import com.ticketbroker.service.BookingNotificationService;
 import com.ticketbroker.service.BookingService;
 import com.ticketbroker.service.EmailService;
 import com.ticketbroker.service.ExcelService;
@@ -581,6 +582,8 @@ public class AdminApiController {
         settings.put("contactEmail", settingsService.getValue("contact_email", "admin@example.com"));
         settings.put("adminEmail", settingsService.getValue("admin_email", "klasskonsertgruppen@gmail.com"));
         settings.put("maxTicketsPerBooking", settingsService.getValue("max_tickets_per_booking", "4"));
+        settings.put("notifyAdminOnBuyerPayment",
+                settingsService.getValue(BookingNotificationService.NOTIFY_ADMIN_SETTING, "true"));
 
         // Include image data if present
         String classPhotoData = settingsService.getValue("class_photo_data", null);
@@ -613,6 +616,7 @@ public class AdminApiController {
             @RequestParam(value = "contact_email", required = false) String contactEmail,
             @RequestParam(value = "admin_email", required = false) String adminEmail,
             @RequestParam(value = "max_tickets_per_booking", required = false) String maxTicketsPerBooking,
+            @RequestParam(value = "notify_admin_on_buyer_payment", required = false) String notifyAdminOnBuyerPayment,
             @RequestParam(value = "class_photo", required = false) org.springframework.web.multipart.MultipartFile classPhoto,
             @RequestParam(value = "qr_logo", required = false) org.springframework.web.multipart.MultipartFile qrLogo) {
 
@@ -646,6 +650,9 @@ public class AdminApiController {
             settingsService.setValue("admin_email", adminEmail);
         if (maxTicketsPerBooking != null)
             settingsService.setValue("max_tickets_per_booking", maxTicketsPerBooking);
+        if (notifyAdminOnBuyerPayment != null)
+            settingsService.setValue(BookingNotificationService.NOTIFY_ADMIN_SETTING,
+                    String.valueOf(Boolean.parseBoolean(notifyAdminOnBuyerPayment)));
 
         // Handle class photo upload
         if (classPhoto != null && !classPhoto.isEmpty()) {
