@@ -320,3 +320,21 @@ td.actions {
     align-items: stretch;
   }
 }
+.resend-show {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.resend-show select {
+  padding: 8px 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.resend-show button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
