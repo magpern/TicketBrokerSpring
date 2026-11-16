@@ -42,6 +42,7 @@ import com.ticketbroker.service.EmailService;
 import com.ticketbroker.service.ExcelService;
 import com.ticketbroker.service.PdfService;
 import com.ticketbroker.service.SettingsService;
+import com.ticketbroker.service.TicketResendBatchService;
 import com.ticketbroker.service.TicketService;
 
 @RestController
@@ -59,6 +60,7 @@ public class AdminApiController {
     private final SettingsService settingsService;
     private final AuditService auditService;
     private final ReceiptService receiptService;
+    private final TicketResendBatchService ticketResendBatchService;
     private final String appBaseUrl;
     private static final DateTimeFormatter SHOW_DATE_FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE;
 
@@ -68,6 +70,7 @@ public class AdminApiController {
             EmailService emailService, PdfService pdfService,
             ExcelService excelService, SettingsService settingsService,
             AuditService auditService, ReceiptService receiptService,
+            TicketResendBatchService ticketResendBatchService,
             @Value("${app.base-url}") String appBaseUrl) {
         this.bookingRepository = bookingRepository;
         this.ticketRepository = ticketRepository;
@@ -79,6 +82,7 @@ public class AdminApiController {
         this.excelService = excelService;
         this.settingsService = settingsService;
         this.auditService = auditService;
+        this.ticketResendBatchService = ticketResendBatchService;
         this.receiptService = receiptService;
         this.appBaseUrl = appBaseUrl;
     }
@@ -278,6 +282,32 @@ public class AdminApiController {
             error.put("error", "Ett fel uppstod vid omssändning av biljetter.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
         }
+    }
+
+    @PostMapping("/shows/{showId}/resend-tickets")
+    public ResponseEntity<Map<String, Object>> resendTicketsForShow(@PathVariable Long showId,
+            @RequestParam(defaultValue = "admin") String adminUser) {
+        Objects.requireNonNull(showId, "Show ID cannot be null");
+        if (!showRepository.existsById(showId)) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Föreställningen hittades inte."));
+        }
+
+        List<Long> bookingIds = ticketResendBatchService.eligibleBookingIds(showId);
+        if (bookingIds.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "Inga bekräftade bokningar med biljetter att skicka till."));
+        }
+        if (!ticketResendBatchService.tryStart(showId)) {
+            return ResponseEntity.status(HttpStatus.CONFLICT)
+                    .body(Map.of("error", "Utskick pågår redan för den här föreställningen."));
+        }
+
+        ticketResendBatchService.resendAll(showId, bookingIds, adminUser);
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("count", bookingIds.size());
+        response.put("message", "Skickar biljetter till " + bookingIds.size()
+                + " bokningar i bakgrunden (1 sekund mellan varje).");
+        return ResponseEntity.accepted().body(response);
     }
 
     @GetMapping("/tickets")

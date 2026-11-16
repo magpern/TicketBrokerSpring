@@ -16,6 +16,8 @@ function AdminDashboardPage() {
   // click landing before React re-renders; the state drives the disabled button.
   const confirmingRef = useRef<Set<number>>(new Set())
   const [confirmingIds, setConfirmingIds] = useState<Set<number>>(new Set())
+  const [resendShowId, setResendShowId] = useState('')
+  const [resendingShow, setResendingShow] = useState(false)
   const [receiptBooking, setReceiptBooking] = useState<BookingResponse | null>(null)
   
   // Calculate stats
@@ -108,6 +110,34 @@ function AdminDashboardPage() {
       } else {
         setMessage({ type: 'error', text: 'Kunde inte skicka om biljetter' })
       }
+    }
+  }
+
+  // Shows that have at least one confirmed booking, i.e. ones tickets can be resent for
+  const resendShows = Array.from(
+    new Map(
+      bookings
+        .filter(b => b.status === 'confirmed' && b.show)
+        .map(b => [b.show!.id, b.show!] as const)
+    ).values()
+  ).sort((a, b) => `${a.date} ${a.startTime}`.localeCompare(`${b.date} ${b.startTime}`))
+
+  const handleResendTicketsForShow = async () => {
+    const show = resendShows.find(s => String(s.id) === resendShowId)
+    if (!show) return
+    const recipients = bookings.filter(b => b.status === 'confirmed' && b.show?.id === show.id).length
+    if (!confirm(`Skicka biljetter igen till ${recipients} bokningar för ${show.date} ${show.startTime}–${show.endTime}? Ett mejl skickas varje sekund.`)) {
+      return
+    }
+    setResendingShow(true)
+    try {
+      const response = await adminApi.post(`/shows/${show.id}/resend-tickets`)
+      setMessage({ type: 'success', text: response.data.message })
+    } catch (error: any) {
+      console.error('Failed to resend tickets for show:', error)
+      setMessage({ type: 'error', text: error.response?.data?.error || 'Kunde inte skicka om biljetter' })
+    } finally {
+      setResendingShow(false)
     }
   }
 
@@ -255,6 +285,30 @@ function AdminDashboardPage() {
         <div className="bookings-section">
           <div className="bookings-header">
             <h3>Alla bokningar</h3>
+            {resendShows.length > 0 && (
+              <div className="resend-show">
+                <select
+                  value={resendShowId}
+                  onChange={e => setResendShowId(e.target.value)}
+                  aria-label="Välj föreställning"
+                >
+                  <option value="">Välj föreställning…</option>
+                  {resendShows.map(show => (
+                    <option key={show.id} value={show.id}>
+                      {show.date} {show.startTime}–{show.endTime}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  className="nav-link"
+                  disabled={!resendShowId || resendingShow}
+                  onClick={handleResendTicketsForShow}
+                >
+                  Skicka biljetter igen till alla
+                </button>
+              </div>
+            )}
           </div>
           {bookings.length === 0 ? (
             <p>Inga bokningar hittades.</p>
